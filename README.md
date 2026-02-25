@@ -118,4 +118,4 @@ uv run streamlit run app.py
 
 ## License
 
-MIT  use it, learn from it, build on it.
+MIT - use it, learn from it, build on it.
