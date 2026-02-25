@@ -1,0 +1,15 @@
+[project]
+name = "tool-calling-project"
+version = "0.1.0"
+description = "Natural Language Data Analyst — Chat with your CSV/Excel files using Groq Tool Calling"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "groq>=1.0.0",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.2",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "python-dotenv>=1.2.1",
+    "streamlit>=1.54.0",
+]
