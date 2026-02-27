@@ -7,6 +7,7 @@ Tools: load_dataset, run_query, create_chart, export_results
 
 import json
 import os
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -170,7 +171,8 @@ def create_chart(code: str, title: str = "Chart") -> str:
         plt.tight_layout()
 
         safe_title = "".join(c if c.isalnum() or c in " _-" else "" for c in title)
-        filepath = os.path.join(CHARTS_DIR, f"{safe_title.replace(' ', '_').lower()}.png")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filepath = os.path.join(CHARTS_DIR, f"{timestamp}_{safe_title.replace(' ', '_').lower()}.png")
         fig.savefig(filepath, dpi=150, bbox_inches="tight", facecolor="#0e1117")
         plt.close(fig)
 
