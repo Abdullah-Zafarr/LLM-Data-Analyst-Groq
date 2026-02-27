@@ -30,6 +30,11 @@ def set_dataset(df: pd.DataFrame, name: str = "default") -> None:
     _datasets[name] = df
 
 
+def clear_dataset(name: str = "default") -> None:
+    """Remove a dataset from memory."""
+    _datasets.pop(name, None)
+
+
 # ---------------------------------------------------------------------------
 # Shared sandbox namespace (used by run_query, create_chart, export_results)
 # ---------------------------------------------------------------------------

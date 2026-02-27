@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from agent import run_agent
-from tools import set_dataset
+from tools import set_dataset, clear_dataset
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -303,8 +303,21 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Error loading file: {e}")
     else:
-        st.markdown(f'<span class="dm-status-empty">{ICONS["folder"]} No dataset</span>', unsafe_allow_html=True)
-        st.caption("Upload a CSV or Excel file to get started.")
+        if st.session_state.dataset_loaded:
+            st.markdown(
+                f'<span class="dm-status-loaded">{ICONS["check"]} {st.session_state.dataset_name}</span>',
+                unsafe_allow_html=True,
+            )
+            if st.button("Clear Dataset", use_container_width=True):
+                clear_dataset()
+                st.session_state.dataset_loaded = False
+                st.session_state.dataset_path = None
+                st.session_state.dataset_name = None
+                st.session_state.agent_messages = None
+                st.rerun()
+        else:
+            st.markdown(f'<span class="dm-status-empty">{ICONS["folder"]} No dataset</span>', unsafe_allow_html=True)
+            st.caption("Upload a CSV or Excel file to get started.")
 
     # Sample data
     st.markdown('<hr class="dm-divider">', unsafe_allow_html=True)
