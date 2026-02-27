@@ -6,6 +6,7 @@ Design: Dark Mode OLED · Fira Code / Fira Sans · Blue #1E40AF + Amber #F59E0B
 
 import streamlit as st
 import pandas as pd
+import html
 import json
 import os
 from dotenv import load_dotenv
@@ -391,7 +392,7 @@ if not st.session_state.messages:
 # Chat history
 for msg in st.session_state.messages:
     if msg["role"] == "user":
-        st.markdown(f'<div class="dm-user-msg">{msg["content"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="dm-user-msg">{html.escape(msg["content"])}</div>', unsafe_allow_html=True)
     elif msg["role"] == "assistant":
         css_class = "dm-assistant-msg dm-error-msg" if msg["content"].startswith("Error:") else "dm-assistant-msg"
         st.markdown(f'<div class="{css_class}">{msg["content"]}</div>', unsafe_allow_html=True)
@@ -409,7 +410,7 @@ if prompt := st.chat_input(placeholder):
         st.stop()
 
     st.session_state.messages.append({"role": "user", "content": prompt})
-    st.markdown(f'<div class="dm-user-msg">{prompt}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="dm-user-msg">{html.escape(prompt)}</div>', unsafe_allow_html=True)
 
     with st.spinner("Analyzing your data..."):
         try:
