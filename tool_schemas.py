@@ -94,6 +94,11 @@ TOOL_SCHEMAS = [
                         "type": "string",
                         "description": "The title for the chart.",
                     },
+                    "palette": {
+                        "type": "string",
+                        "enum": ["vibrant", "corporate", "pastel", "sunset"],
+                        "description": "The color theme for the chart. Default: 'vibrant'.",
+                    },
                 },
                 "required": ["code", "title"],
             },

@@ -159,8 +159,8 @@ def run_query(code: str) -> str:
 CHARTS_DIR = "charts"
 
 
-def create_chart(code: str, title: str = "Chart") -> str:
-    """Generate a Matplotlib chart and save as PNG."""
+def create_chart(code: str, title: str = "Chart", palette: str = "vibrant") -> str:
+    """Generate a Matplotlib chart with color themes."""
     try:
         df = get_dataset()
         if df is None:
@@ -168,10 +168,18 @@ def create_chart(code: str, title: str = "Chart") -> str:
 
         os.makedirs(CHARTS_DIR, exist_ok=True)
 
+        palettes = {
+            "vibrant": ['#00d4ff', '#ff6b6b', '#00ff88', '#ffd700', '#ff69b4'],
+            "corporate": ['#1e3a8a', '#3b82f6', '#94a3b8', '#1d4ed8', '#0f172a'],
+            "pastel": ['#80d0ff', '#ffafaf', '#9bffc2', '#fff0a3', '#ffc2eb'],
+            "sunset": ['#ff4e50', '#fc913a', '#f9d423', '#ede574', '#e1f5c4'],
+        }
+        colors = palettes.get(palette, palettes["vibrant"])
+
         plt.style.use("dark_background")
         fig, ax = plt.subplots(figsize=(10, 6))
 
-        g, l = _sandbox(df, plt=plt, fig=fig, ax=ax)
+        g, l = _sandbox(df, plt=plt, fig=fig, ax=ax, colors=colors)
         exec(code, g, l)
 
         ax.set_title(title, fontsize=14, fontweight="bold", color="white", pad=15)
