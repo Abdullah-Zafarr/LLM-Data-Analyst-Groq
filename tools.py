@@ -85,6 +85,13 @@ def load_dataset(filename: str) -> str:
             "shape": {"rows": df.shape[0], "columns": df.shape[1]},
             "columns": list(df.columns),
             "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()},
+            "null_counts": {col: int(count) for col, count in df.isnull().sum().items() if count > 0},
+            "missing_percentage": {
+                col: round(count / len(df) * 100, 1)
+                for col, count in df.isnull().sum().items()
+                if count > 0
+            },
+            "memory_usage_mb": round(df.memory_usage(deep=True).sum() / (1024 * 1024), 2),
             "sample_rows": df.head(5).to_dict(orient="records"),
             "numeric_summary": {},
         }
