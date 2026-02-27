@@ -78,11 +78,20 @@ def load_dataset(filename: str) -> str:
         else:
             return json.dumps({"error": f"Unsupported file type: {ext}. Use CSV or Excel."})
 
+        # Intelligent sampling: if rows > 50,000, take a random sample
+        is_sampled = False
+        original_row_count = len(df)
+        if original_row_count > 50000:
+            df = df.sample(n=50000, random_state=42)
+            is_sampled = True
+
         set_dataset(df)
 
         summary = {
             "status": "success",
             "filename": os.path.basename(filename),
+            "is_sampled": is_sampled,
+            "original_row_count": original_row_count,
             "shape": {"rows": df.shape[0], "columns": df.shape[1]},
             "columns": list(df.columns),
             "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()},
