@@ -135,4 +135,36 @@ TOOL_SCHEMAS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "clean_data",
+            "description": (
+                "Clean the loaded dataset by dropping/filling missing values, dropping columns, or renaming them. "
+                "Operations: 'drop_na', 'fill_na', 'drop_cols', 'rename_cols'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "operation": {
+                        "type": "string",
+                        "enum": ["drop_na", "fill_na", "drop_cols", "rename_cols"],
+                    },
+                    "columns": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of column names to apply the operation to.",
+                    },
+                    "value": {
+                        "type": "string",
+                        "description": (
+                            "For 'fill_na': specify the value (or 'mean', 'median'). "
+                            "For 'rename_cols': specify a JSON dict string like '{\"old\":\"new\"}'."
+                        ),
+                    }
+                },
+                "required": ["operation"],
+            },
+        },
+    },
 ]

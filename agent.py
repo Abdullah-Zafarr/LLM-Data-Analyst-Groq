@@ -15,7 +15,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
-from tools import load_dataset, run_query, create_chart, export_results
+from tools import load_dataset, run_query, create_chart, export_results, clean_data
 from tool_schemas import TOOL_SCHEMAS
 
 load_dotenv()
@@ -57,6 +57,7 @@ AVAILABLE_FUNCTIONS = {
     "run_query": run_query,
     "create_chart": create_chart,
     "export_results": export_results,
+    "clean_data": clean_data,
 }
 
 

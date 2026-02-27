@@ -226,3 +226,62 @@ def export_results(data: str, filename: str = "export.csv") -> str:
 
     except Exception as e:
         return json.dumps({"error": f"Export failed: {str(e)}"})
+
+
+# ---------------------------------------------------------------------------
+# Tool 5: clean_data
+# ---------------------------------------------------------------------------
+def clean_data(operation: str, columns: list = None, value: str = None) -> str:
+    """Perform data cleaning operations: drop_na, fill_na, drop_cols, rename_cols."""
+    try:
+        df = get_dataset()
+        if df is None:
+            return json.dumps({"error": "No dataset loaded. Use load_dataset first."})
+
+        original_rows = len(df)
+        original_cols = len(df.columns)
+
+        if operation == "drop_na":
+            df = df.dropna(subset=columns) if columns else df.dropna()
+        elif operation == "fill_na":
+            if columns:
+                for col in columns:
+                    if col in df.columns:
+                        # Attempt numeric conversion for mean/median fill
+                        if value == "mean":
+                            df[col] = df[col].fillna(df[col].mean())
+                        elif value == "median":
+                            df[col] = df[col].fillna(df[col].median())
+                        else:
+                            df[col] = df[col].fillna(value)
+            else:
+                df = df.fillna(value)
+        elif operation == "drop_cols":
+            if columns:
+                df = df.drop(columns=columns)
+        elif operation == "rename_cols":
+            # value should be a JSON string representing a dict for rename
+            if value and isinstance(value, str):
+                try:
+                    rename_dict = json.loads(value.replace("'", '"'))
+                    df = df.rename(columns=rename_dict)
+                except:
+                    return json.dumps({"error": "For rename_cols, 'value' must be a valid JSON dictionary string."})
+        else:
+            return json.dumps({"error": f"Unknown operation: {operation}"})
+
+        set_dataset(df)
+
+        return json.dumps({
+            "status": "success",
+            "operation": operation,
+            "changes": {
+                "rows_removed": original_rows - len(df),
+                "cols_removed": original_cols - len(df.columns),
+                "new_shape": {"rows": len(df), "columns": len(df.columns)}
+            },
+            "message": f"Data cleaned successfully using '{operation}'."
+        })
+
+    except Exception as e:
+        return json.dumps({"error": f"Data cleaning failed: {str(e)}"})
