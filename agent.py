@@ -10,6 +10,7 @@ Implements the Groq tool calling loop:
 """
 
 import json
+import logging
 import os
 from groq import Groq
 from dotenv import load_dotenv
@@ -18,6 +19,11 @@ from tools import load_dataset, run_query, create_chart, export_results
 from tool_schemas import TOOL_SCHEMAS
 
 load_dotenv()
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -101,6 +107,8 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
     iteration = 0
     while iteration < MAX_ITERATIONS:
         iteration += 1
+        logger.debug("Agent loop iteration %d/%d", iteration, MAX_ITERATIONS)
+        logger.debug("Agent loop iteration %d/%d", iteration, MAX_ITERATIONS)
 
         # Call Groq with tool schemas
         try:
@@ -115,12 +123,15 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
             err_str = str(api_err)
             # Groq returns tool_use_failed when the LLM generates malformed tool JSON
             if "tool_use_failed" in err_str:
+                logger.warning("Malformed tool call from LLM, asking for retry (iteration %d)", iteration)
                 messages.append({
                     "role": "user",
                     "content": "[System: Your previous tool call was malformed. Please try again with valid arguments, or respond directly without using tools.]",
                 })
                 continue
             # Other API errors — return gracefully
+            logger.error("Groq API error: %s", err_str)
+            logger.error("Groq API error: %s", err_str)
             return {
                 "response": f"API error: {err_str}",
                 "messages": messages,
@@ -158,6 +169,10 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
             except json.JSONDecodeError:
                 function_args = {}
 
+            logger.info("Calling tool '%s' with args: %s", function_name, function_args)
+
+            logger.info("Calling tool '%s' with args: %s", function_name, function_args)
+
             # Log the tool call
             log_entry = {
                 "tool": function_name,
@@ -173,6 +188,8 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
                 except TypeError as e:
                     function_response = json.dumps({"error": f"Invalid arguments: {str(e)}"})
                 except Exception as e:
+                    logger.exception("Tool '%s' raised an exception", function_name)
+                    logger.exception("Tool '%s' raised an exception", function_name)
                     function_response = json.dumps({"error": f"Tool execution error: {str(e)}"})
             else:
                 function_response = json.dumps({"error": f"Unknown tool: {function_name}"})
@@ -199,6 +216,7 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
             })
 
     # If we hit max iterations, return what we have
+    logger.warning("Agent hit MAX_ITERATIONS (%d) — returning partial results", MAX_ITERATIONS)
     final_msg = "I've reached the maximum number of analysis steps. Here's what I found so far."
     messages.append({"role": "assistant", "content": final_msg})
     return {
