@@ -246,7 +246,7 @@ def _render_artifacts(msg: dict):
         with st.expander("Tool Activity", expanded=False):
             for tc in tool_calls:
                 st.markdown(
-                    f'<span class="dm-tool-badge">{ICONS["bolt"]} {tc["tool"]}</span>',
+                    f'<span class="dm-tool-badge">{ICONS["bolt"]} Step {tc.get("iteration", "?")}: {tc["tool"]}</span>',
                     unsafe_allow_html=True,
                 )
                 if "args" in tc:
