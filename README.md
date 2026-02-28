@@ -114,7 +114,7 @@ uv run streamlit run app.py
 | Frontend | Streamlit + custom CSS |
 | Package Manager | uv |
 
----
+----
 
 ## License
 
