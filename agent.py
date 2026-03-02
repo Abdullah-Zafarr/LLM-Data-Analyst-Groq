@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 MODEL = "llama-3.3-70b-versatile"
 MAX_ITERATIONS = 10
+TEMPERATURE = 0.1  # Low temperature for precise analytical outputs
 
 SYSTEM_PROMPT = """You are an expert data analyst AI assistant. You help users explore, analyze, and visualize datasets through natural language conversation.
 
@@ -118,6 +119,7 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
                 messages=messages,
                 tools=TOOL_SCHEMAS,
                 tool_choice="auto",
+                temperature=TEMPERATURE,
                 max_tokens=4096,
             )
         except Exception as api_err:
