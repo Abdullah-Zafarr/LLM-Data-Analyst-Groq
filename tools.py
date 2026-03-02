@@ -74,10 +74,12 @@ def load_dataset(filename: str) -> str:
         ext = os.path.splitext(filename)[1].lower()
         if ext == ".csv":
             df = pd.read_csv(filename)
-        elif ext in (".xlsx", ".xls"):
+        elif ext == ".tsv":
+            df = pd.read_csv(filename, sep="\t")
+        elif ext in (".xlsx", ".xls", ".xlsb"):
             df = pd.read_excel(filename)
         else:
-            return json.dumps({"error": f"Unsupported file type: {ext}. Use CSV or Excel."})
+            return json.dumps({"error": f"Unsupported file type: {ext}. Supported: CSV, TSV, XLSX, XLS, XLSB."})
 
         # Intelligent sampling: if rows > 50,000, take a random sample
         is_sampled = False
