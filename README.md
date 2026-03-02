@@ -101,10 +101,10 @@ uv run streamlit run app.py
 
 ## Key Concepts
 
-- **Tool Schemas** — JSON definitions telling the LLM what tools exist
-- **Agentic Loop** — Multi-turn tool calling where the AI chains tools
-- **Sandboxed Execution** — Safe `exec/eval` with restricted namespace
-- **Structured Outputs** — Tools return JSON the model can interpret
+- **Tool Schemas** — JSON definitions telling the LLM what tools exist.
+- **Agentic Loop** — Multi-turn tool calling where the AI chains tools.
+- **Sandboxed Execution** — Safe `exec/eval` with restricted namespace.
+- **Structured Outputs** — Tools return JSON the model can interpret.
 
 ---
 
