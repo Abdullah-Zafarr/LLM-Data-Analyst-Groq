@@ -21,3 +21,12 @@ uploads/
 .idea/
 .vscode/
 *.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing / type checking
+.pytest_cache/
+.mypy_cache/
