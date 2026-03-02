@@ -90,9 +90,9 @@ st.markdown("""
     .dm-header { text-align: center; padding: 1.5rem 0 0.75rem; margin-bottom: 1.5rem; }
     .dm-title {
         font-family: 'Fira Code', monospace; font-size: 2.4rem; font-weight: 700;
-        color: #fff; text-shadow: 0 0 40px rgba(59,130,246,0.3); letter-spacing: -1px; margin-bottom: 0.4rem;
+        color: #fff; text-shadow: 0 0 40px rgba(16,185,129,0.3); letter-spacing: -1px; margin-bottom: 0.4rem;
     }
-    .dm-title-accent { color: var(--cta); }
+    .dm-title-accent { color: var(--success); }
     .dm-subtitle { font-family: 'Fira Sans', sans-serif; font-size: 0.9rem; color: var(--text-muted); letter-spacing: 0.5px; }
     .dm-subtitle code {
         font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--accent);
@@ -261,7 +261,7 @@ with st.sidebar:
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
         <span style="color:var(--secondary);">{ICONS['database']}</span>
         <span style="font-family:'Fira Code',monospace; font-size:1.1rem; font-weight:700; color:#fff;">
-            DataMind<span style="color:var(--cta);">AI</span>
+            DataMind<span style="color:var(--success);">AI</span>
         </span>
     </div>
     """, unsafe_allow_html=True)
