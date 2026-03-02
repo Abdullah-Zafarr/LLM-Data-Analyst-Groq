@@ -1,51 +1,204 @@
-Date,Region,Product,Revenue,Units,Category
-2024-01-05,North,Widget A,1250.00,50,Electronics
-2024-01-08,South,Widget B,890.50,35,Electronics
-2024-01-12,East,Gadget X,2100.00,42,Accessories
-2024-01-15,West,Widget A,1580.00,63,Electronics
-2024-01-18,North,Gadget Y,3200.00,80,Accessories
-2024-01-22,South,Widget C,720.00,30,Home
-2024-01-25,East,Widget A,1340.00,54,Electronics
-2024-01-28,West,Gadget X,1890.00,38,Accessories
-2024-02-02,North,Widget B,950.00,38,Electronics
-2024-02-05,South,Gadget Y,2750.00,55,Accessories
-2024-02-08,East,Widget C,680.00,28,Home
-2024-02-12,West,Widget B,1100.00,44,Electronics
-2024-02-15,North,Gadget X,2400.00,48,Accessories
-2024-02-18,South,Widget A,1620.00,65,Electronics
-2024-02-22,East,Gadget Y,2980.00,60,Accessories
-2024-02-25,West,Widget C,810.00,32,Home
-2024-03-01,North,Widget A,1450.00,58,Electronics
-2024-03-04,South,Gadget X,2250.00,45,Accessories
-2024-03-08,East,Widget B,1020.00,41,Electronics
-2024-03-11,West,Gadget Y,3100.00,62,Accessories
-2024-03-15,North,Widget C,750.00,30,Home
-2024-03-18,South,Widget A,1380.00,55,Electronics
-2024-03-22,East,Gadget X,2050.00,41,Accessories
-2024-03-25,West,Widget B,980.00,39,Electronics
-2024-03-28,North,Gadget Y,2850.00,57,Accessories
-2024-04-02,South,Widget C,690.00,28,Home
-2024-04-05,East,Widget A,1520.00,61,Electronics
-2024-04-08,West,Gadget X,2180.00,44,Accessories
-2024-04-12,North,Widget B,1060.00,42,Electronics
-2024-04-15,South,Gadget Y,3050.00,61,Accessories
-2024-04-18,East,Widget C,780.00,31,Home
-2024-04-22,West,Widget A,1480.00,59,Electronics
-2024-04-25,North,Gadget X,2350.00,47,Accessories
-2024-04-28,South,Widget B,920.00,37,Electronics
-2024-05-02,East,Gadget Y,2900.00,58,Accessories
-2024-05-05,West,Widget C,840.00,34,Home
-2024-05-08,North,Widget A,1560.00,62,Electronics
-2024-05-12,South,Gadget X,2280.00,46,Accessories
-2024-05-15,East,Widget B,1080.00,43,Electronics
-2024-05-18,West,Gadget Y,3150.00,63,Accessories
-2024-05-22,North,Widget C,770.00,31,Home
-2024-05-25,South,Widget A,1420.00,57,Electronics
-2024-05-28,East,Gadget X,2120.00,42,Accessories
-2024-06-01,West,Widget B,990.00,40,Electronics
-2024-06-05,North,Gadget Y,2950.00,59,Accessories
-2024-06-08,South,Widget C,710.00,29,Home
-2024-06-12,East,Widget A,1500.00,60,Electronics
-2024-06-15,West,Gadget X,2200.00,44,Accessories
-2024-06-18,North,Widget B,1040.00,42,Electronics
-2024-06-22,South,Gadget Y,3080.00,62,Accessories
+OrderID,Date,Region,Product,Category,Salesperson,Units,Revenue,Discount,Payment_Method
+ORD-1106,2023-01-13,Central,Cable Pack,Accessories,Diana,60,7963.33,0.18,PayPal
+ORD-1038,2023-01-15,East,Air Purifier,Home,,90,1449.05,0.08,Cash
+ORD-1092,2023-01-17,South,Mechanical Keyboard,Office,Hannah,44,101323.34,0.0,Wire Transfer
+ORD-1185,2023-01-20,West,Desk Lamp,Home,Evan,57,7725.98,0.0,Cash
+ORD-1196,2023-02-04,Central,Smart Bulb,Home,Evan,6,1427.71,0.0,Cash
+ORD-1042,2023-02-05,South,Ergo Mouse,Office,Bob,13,370.18,0.0,Credit Card
+ORD-1149,2023-02-05,North,Smart Plug,Home,Bob,82,5740.32,0.0,Credit Card
+ORD-1088,2023-02-07,Central,Desk Mat,Office,Fiona,51,11428.65,0.0,Wire Transfer
+ORD-1069,2023-02-08,East,Widget B,Electronics,Bob,82,17306.13,0.0,PayPal
+ORD-1030,2023-02-10,North,Laptop Pro,Electronics,George,28,49348.71,0.0,PayPal
+ORD-1193,2023-02-10,North,Desk Lamp,Home,Diana,64,7601.78,0.0,Cash
+ORD-1046,2023-02-13,South,Mechanical Keyboard,Office,Hannah,84,18833.99,0.0,Cash
+ORD-1044,2023-02-14,West,Ergo Mouse,Office,George,62,10045.05,0.0,Credit Card
+ORD-1117,2023-02-16,East,Bluetooth Earbuds,Accessories,Alice,99,16135.33,0.0,Credit Card
+ORD-1111,2023-02-20,South,Widget B,Electronics,Evan,25,1180.25,0.0,Cash
+ORD-1040,2023-02-21,East,Air Purifier,Home,Fiona,96,16984.69,0.08,Cash
+ORD-1060,2023-02-22,Central,Desk Lamp,Home,Diana,44,40131.34,0.0,PayPal
+ORD-1114,2023-02-23,West,Widget A,Electronics,Bob,60,48473.06,0.0,PayPal
+ORD-1077,2023-02-23,North,Mechanical Keyboard,Office,George,33,5414.89,0.0,Wire Transfer
+ORD-1115,2023-03-01,Central,Smart Bulb,Home,George,5,598.72,0.0,Credit Card
+ORD-1039,2023-03-04,Central,Wireless Charger,Accessories,George,96,15622.9,0.0,Wire Transfer
+ORD-1078,2023-03-16,West,Gadget X,Electronics,Bob,72,14290.69,0.0,Cash
+ORD-1165,2023-03-17,Central,Widget A,Electronics,Charlie,9,1734.86,0.0,PayPal
+ORD-1003,2023-03-29,East,Smart Bulb,Home,Hannah,24,3989.12,0.0,Wire Transfer
+ORD-1013,2023-03-30,Central,Smartphone Z,Electronics,Fiona,60,8711.35,0.0,Wire Transfer
+ORD-1143,2023-04-03,,Smart Bulb,Home,George,26,4513.27,0.14,Credit Card
+ORD-1124,2023-04-06,South,Smart Bulb,Home,George,48,25020.52,0.21,Credit Card
+ORD-1150,2023-04-06,South,Monitor Stand,Office,,24,40878.67,0.0,Cash
+ORD-1033,2023-04-09,South,Gadget Y,Electronics,George,44,7172.61,0.0,PayPal
+ORD-1096,2023-04-09,South,Laptop Pro,Electronics,Alice,60,12883.34,0.0,PayPal
+ORD-1159,2023-04-09,South,Monitor Stand,Office,Bob,12,1066.55,0.0,Wire Transfer
+ORD-1155,2023-04-10,South,Mechanical Keyboard,Office,Hannah,-9,-1545.49,0.0,Wire Transfer
+ORD-1035,2023-04-11,North,Desk Mat,Office,Hannah,47,8515.4,0.0,Wire Transfer
+ORD-1139,2023-04-11,East,Bluetooth Earbuds,Accessories,Evan,12,1231.98,0.29,PayPal
+ORD-1000,2023-04-13,North,Laptop Pro,Electronics,Evan,52,12384.91,0.23,Credit Card
+ORD-1079,2023-04-14,North,Monitor Stand,Office,Alice,84,12546.64,0.0,Cash
+ORD-1018,2023-04-16,Central,Ergo Mouse,Office,Hannah,4,217.46,0.29,Cash
+ORD-1162,2023-04-19,North,Phone Case,Accessories,Diana,53,36057.6,0.0,Wire Transfer
+ORD-1080,2023-04-22,Central,Wireless Charger,Accessories,Hannah,89,15062.4,0.05,PayPal
+ORD-1144,2023-04-25,North,Smart Plug,Home,Charlie,-9,-960.9,0.0,Cash
+ORD-1049,2023-05-01,South,Gadget X,Electronics,George,77,16676.3,0.05,Cash
+ORD-1123,2023-05-02,East,Desk Lamp,Home,Bob,-1,-96.84,0.0,PayPal
+ORD-1119,2023-05-04,North,Laptop Pro,Electronics,Diana,30,595.69,0.15,Wire Transfer
+ORD-1175,2023-05-06,Central,Wireless Charger,Accessories,Evan,67,4749.21,0.0,Wire Transfer
+ORD-1086,2023-05-08,West,Bluetooth Earbuds,Accessories,Alice,33,4626.92,0.0,Credit Card
+ORD-1027,2023-05-09,South,Smart Bulb,Home,Diana,8,90.6,0.0,Wire Transfer
+ORD-1181,2023-05-14,North,Widget B,Electronics,Alice,58,749.19,0.0,PayPal
+ORD-1045,2023-05-14,North,Ergo Mouse,Office,Charlie,28,5680.68,0.0,PayPal
+ORD-1012,2023-05-15,Central,Laptop Pro,Electronics,Evan,21,2480.52,0.05,Wire Transfer
+ORD-1028,2023-05-19,Central,Laptop Pro,Electronics,Evan,81,14638.49,0.0,Wire Transfer
+ORD-1167,2023-05-21,South,Phone Case,Accessories,Fiona,40,1098.52,0.0,Credit Card
+ORD-1072,2023-05-24,East,Widget B,Electronics,Evan,90,22114.84,0.0,PayPal
+ORD-1076,2023-05-27,East,Widget B,Electronics,Hannah,48,10233.54,0.26,Cash
+ORD-1067,2023-05-27,South,Desk Mat,Office,Alice,20,3296.83,0.0,PayPal
+ORD-1134,2023-05-27,North,Smart Bulb,Home,George,58,7554.48,0.0,PayPal
+ORD-1066,2023-05-28,East,Wireless Charger,Accessories,Charlie,59,3708.61,0.23,Credit Card
+ORD-1177,2023-05-28,Central,Desk Mat,Office,Alice,-8,-293.94,0.0,Cash
+ORD-1183,2023-05-29,South,Mechanical Keyboard,Office,Fiona,80,10931.86,0.0,Wire Transfer
+ORD-1161,2023-05-31,East,Smart Bulb,Home,Evan,16,3192.13,0.0,PayPal
+ORD-1137,2023-06-01,South,Phone Case,Accessories,Charlie,12,1237.93,0.21,Credit Card
+ORD-1190,2023-06-05,North,Cable Pack,Accessories,Charlie,8,405.79,0.0,Credit Card
+ORD-1182,2023-06-09,West,Laptop Pro,Electronics,Charlie,45,916.13,0.0,Cash
+ORD-1098,2023-06-10,West,Desk Lamp,Home,Bob,67,26430.15,0.0,PayPal
+ORD-1082,2023-06-12,East,Air Purifier,Home,Hannah,80,19893.58,0.0,Cash
+ORD-1147,2023-06-13,West,Laptop Pro,Electronics,Diana,10,1116.33,0.19,Wire Transfer
+ORD-1191,2023-06-13,West,Wireless Charger,Accessories,Alice,-8,-642.96,0.0,Credit Card
+ORD-1169,2023-06-14,South,Mechanical Keyboard,Office,Hannah,38,64440.61,0.0,Cash
+ORD-1051,2023-06-14,Central,Bluetooth Earbuds,Accessories,Diana,97,3760.47,0.0,Cash
+ORD-1052,2023-06-21,South,Gadget X,Electronics,Alice,24,5671.16,0.0,PayPal
+ORD-1107,2023-06-22,East,Phone Case,Accessories,,20,3319.83,0.0,PayPal
+ORD-1104,2023-06-25,East,Laptop Pro,Electronics,Fiona,39,3138.02,0.0,Cash
+ORD-1192,2023-06-27,West,Ergo Mouse,Office,Hannah,28,802.38,0.0,Cash
+ORD-1133,2023-06-29,West,Wireless Charger,Accessories,Fiona,95,1298.94,0.0,Credit Card
+ORD-1043,2023-07-06,East,Phone Case,Accessories,Charlie,-3,-134.48,0.28,Cash
+ORD-1009,2023-07-07,South,Bluetooth Earbuds,Accessories,Bob,80,5269.21,0.07,PayPal
+ORD-1125,2023-07-08,Central,Monitor Stand,Office,Evan,64,73775.54,0.0,Cash
+ORD-1001,2023-07-08,North,Phone Case,Accessories,Alice,21,996.33,0.0,Cash
+ORD-1048,2023-07-09,North,Smart Plug,Home,Evan,97,7305.24,0.21,PayPal
+ORD-1022,2023-07-09,West,Air Purifier,Home,Evan,40,8507.52,0.0,Cash
+ORD-1112,2023-07-09,West,Desk Mat,Office,Bob,22,3339.6,0.0,PayPal
+ORD-1180,2023-07-10,North,Mechanical Keyboard,Office,Diana,25,5461.59,0.11,Cash
+ORD-1097,2023-07-10,West,Phone Case,Accessories,Charlie,85,4744.59,0.0,Wire Transfer
+ORD-1174,2023-07-21,West,Smart Bulb,Home,Bob,90,8033.45,0.0,Cash
+ORD-1184,2023-07-22,South,Desk Lamp,Home,Diana,36,5145.3,0.0,PayPal
+ORD-1152,2023-08-05,East,Smart Bulb,Home,Fiona,99,3440.22,0.0,Cash
+ORD-1154,2023-08-05,North,Ergo Mouse,Office,Evan,86,38517.02,0.0,Wire Transfer
+ORD-1019,2023-08-06,North,Widget A,Electronics,George,44,10361.11,0.27,PayPal
+ORD-1130,2023-08-06,East,Gadget Y,Electronics,Bob,90,11518.9,0.17,Wire Transfer
+ORD-1058,2023-08-08,East,Smartphone Z,Electronics,Fiona,-6,-126.69,0.0,Cash
+ORD-1164,2023-08-09,North,Wireless Charger,Accessories,Bob,75,2857.21,0.0,PayPal
+ORD-1163,2023-08-11,South,Widget A,Electronics,Evan,5,934.44,0.0,Cash
+ORD-1157,2023-08-11,West,Widget B,Electronics,Bob,52,7676.5,0.0,Credit Card
+ORD-1099,2023-08-11,West,Smart Bulb,Home,George,-6,-862.59,0.0,Cash
+ORD-1059,2023-08-12,West,Bluetooth Earbuds,Accessories,Charlie,97,15737.7,0.22,Cash
+ORD-1189,2023-08-12,South,Monitor Stand,Office,Hannah,16,3578.61,0.16,Wire Transfer
+ORD-1148,2023-08-15,,Smart Bulb,Home,Alice,49,9094.18,0.0,Wire Transfer
+ORD-1041,2023-08-19,South,Air Purifier,Home,Alice,15,2869.98,0.0,Wire Transfer
+ORD-1094,2023-08-21,West,Desk Lamp,Home,Evan,-5,-933.69,0.0,Cash
+ORD-1054,2023-08-21,North,Gadget Y,Electronics,Diana,52,5058.1,0.0,Credit Card
+ORD-1186,2023-08-21,South,Smart Bulb,Home,Evan,49,63068.93,0.0,Wire Transfer
+ORD-1023,2023-08-25,North,Laptop Pro,Electronics,Fiona,82,11441.14,0.0,PayPal
+ORD-1129,2023-08-26,West,Monitor Stand,Office,Fiona,62,11090.43,0.17,Credit Card
+ORD-1064,2023-08-28,West,Desk Lamp,Home,Hannah,16,3367.56,0.13,PayPal
+ORD-1176,2023-08-30,Central,Widget B,Electronics,Bob,92,13538.12,0.0,Wire Transfer
+ORD-1199,2023-08-30,East,Desk Mat,Office,Diana,5,81.64,0.0,Cash
+ORD-1011,2023-09-01,Central,Desk Lamp,Home,Bob,64,7809.48,0.26,Wire Transfer
+ORD-1105,2023-09-04,West,Laptop Pro,Electronics,Diana,26,5315.11,0.27,Wire Transfer
+ORD-1061,2023-09-04,West,Smart Bulb,Home,Hannah,68,1999.53,0.14,Wire Transfer
+ORD-1126,2023-09-04,North,Desk Mat,Office,Diana,67,4653.51,0.14,Wire Transfer
+ORD-1132,2023-09-07,North,Desk Mat,Office,Fiona,10,22432.16,0.0,Credit Card
+ORD-1197,2023-09-13,Central,Air Purifier,Home,Hannah,69,10848.16,0.0,PayPal
+ORD-1036,2023-09-14,South,Laptop Pro,Electronics,Diana,5,723.53,0.24,Wire Transfer
+ORD-1136,2023-09-15,South,Laptop Pro,Electronics,George,92,134399.02,0.0,PayPal
+ORD-1116,2023-09-19,East,Smartphone Z,Electronics,Diana,96,13202.41,0.0,Wire Transfer
+ORD-1156,2023-09-22,North,Laptop Pro,Electronics,George,71,17013.89,0.0,Credit Card
+ORD-1014,2023-09-22,Central,Widget A,Electronics,Hannah,90,3009.72,0.0,PayPal
+ORD-1070,2023-09-24,West,Air Purifier,Home,Evan,92,103699.48,0.0,Credit Card
+ORD-1151,2023-09-25,South,Gadget Y,Electronics,,55,10461.5,0.0,Wire Transfer
+ORD-1020,2023-09-27,West,Wireless Charger,Accessories,Hannah,95,21968.73,0.0,Credit Card
+ORD-1153,2023-09-30,West,Smart Plug,Home,Hannah,62,8008.83,0.0,Wire Transfer
+ORD-1173,2023-10-02,North,Monitor Stand,Office,Diana,61,6143.74,0.23,Cash
+ORD-1120,2023-10-02,Central,Widget A,Electronics,Charlie,92,17348.46,0.0,Wire Transfer
+ORD-1122,2023-10-06,West,Smart Bulb,Home,Diana,9,1577.16,0.06,Wire Transfer
+ORD-1024,2023-10-07,South,Smartphone Z,Electronics,Bob,26,6283.19,0.2,PayPal
+ORD-1089,2023-10-10,West,Smartphone Z,Electronics,Bob,27,5420.38,0.18,PayPal
+ORD-1090,2023-10-11,North,Gadget X,Electronics,Charlie,64,13913.61,0.11,Credit Card
+ORD-1110,2023-10-15,North,Monitor Stand,Office,George,87,14901.91,0.0,Credit Card
+ORD-1101,2023-10-15,North,Mechanical Keyboard,Office,George,47,66340.39,0.18,Cash
+ORD-1131,2023-10-16,North,Monitor Stand,Office,Alice,94,15598.89,0.0,Wire Transfer
+ORD-1172,2023-10-19,South,Desk Lamp,Home,Diana,70,12597.44,0.0,Cash
+ORD-1056,2023-10-22,South,Widget B,Electronics,Evan,2,2077.41,0.0,Cash
+ORD-1084,2023-10-31,Central,Ergo Mouse,Office,Hannah,20,1959.05,0.0,Cash
+ORD-1091,2023-10-31,South,Bluetooth Earbuds,Accessories,Charlie,19,24745.07,0.0,PayPal
+ORD-1068,2023-11-04,West,Widget A,Electronics,George,33,3478.77,0.0,PayPal
+ORD-1118,2023-11-04,East,Desk Lamp,Home,Alice,16,3907.27,0.0,Credit Card
+ORD-1004,2023-11-05,East,Cable Pack,Accessories,Alice,2,366.56,0.0,PayPal
+ORD-1007,2023-11-10,North,Cable Pack,Accessories,Fiona,22,1316.22,0.0,Wire Transfer
+ORD-1145,2023-11-10,West,Desk Mat,Office,Bob,-5,-397.21,0.28,PayPal
+ORD-1170,2023-11-17,South,Desk Lamp,Home,Fiona,86,17636.18,0.0,Credit Card
+ORD-1135,2023-11-21,South,Desk Lamp,Home,George,4,631.22,0.29,Cash
+ORD-1065,2023-11-22,South,Phone Case,Accessories,Hannah,80,1582.88,0.0,Wire Transfer
+ORD-1171,2023-11-23,East,Ergo Mouse,Office,Charlie,89,13532.74,0.0,Cash
+ORD-1140,2023-11-26,West,Wireless Charger,Accessories,Hannah,43,2450.56,0.0,Cash
+ORD-1047,2023-11-27,West,Mechanical Keyboard,Office,Diana,92,8787.06,0.0,Cash
+ORD-1015,2023-12-06,Central,Wireless Charger,Accessories,George,92,10638.57,0.0,PayPal
+ORD-1113,2023-12-08,West,Air Purifier,Home,George,49,8467.94,0.0,Wire Transfer
+ORD-1026,2023-12-11,West,Smart Bulb,Home,Alice,71,7924.76,0.0,Credit Card
+ORD-1121,2023-12-12,Central,Monitor Stand,Office,Evan,90,21693.21,0.0,Credit Card
+ORD-1037,2023-12-25,Central,Smart Bulb,Home,,27,3657.31,0.0,Wire Transfer
+ORD-1100,2023-12-26,East,Mechanical Keyboard,Office,Bob,46,1532.83,0.0,Wire Transfer
+ORD-1178,2023-12-27,Central,Wireless Charger,Accessories,Fiona,39,7372.98,0.0,Wire Transfer
+ORD-1158,2024-01-02,East,Air Purifier,Home,Bob,16,1882.03,0.0,Wire Transfer
+ORD-1109,2024-01-06,East,Gadget X,Electronics,Diana,87,11420.23,0.0,Wire Transfer
+ORD-1063,2024-01-07,West,Desk Mat,Office,Bob,98,15880.62,0.18,Wire Transfer
+ORD-1187,2024-01-08,Central,Desk Lamp,Home,Charlie,54,8112.71,0.28,Credit Card
+ORD-1093,2024-01-08,West,Desk Lamp,Home,George,6,593.03,0.0,Cash
+ORD-1053,2024-01-09,South,Mechanical Keyboard,Office,Fiona,32,4304.31,0.0,Cash
+ORD-1146,2024-01-11,Central,Desk Mat,Office,Evan,36,3971.05,0.29,Cash
+ORD-1160,2024-01-14,South,Widget B,Electronics,Bob,85,16198.44,0.0,Credit Card
+ORD-1081,2024-01-19,North,Desk Mat,Office,Diana,82,10376.88,0.0,Credit Card
+ORD-1074,2024-01-20,East,Air Purifier,Home,Bob,48,11601.63,0.0,Wire Transfer
+ORD-1142,2024-01-21,North,Smart Bulb,Home,Charlie,35,3177.06,0.21,Cash
+ORD-1102,2024-01-21,Central,Bluetooth Earbuds,Accessories,Hannah,90,16900.6,0.0,Cash
+ORD-1085,2024-01-27,South,Bluetooth Earbuds,Accessories,Diana,7,1281.18,0.0,Cash
+ORD-1141,2024-02-01,Central,Wireless Charger,Accessories,Alice,12,410.24,0.0,Credit Card
+ORD-1062,2024-02-05,East,Smartphone Z,Electronics,Diana,38,3734.18,0.0,PayPal
+ORD-1032,2024-02-11,South,Ergo Mouse,Office,Alice,62,5458.73,0.0,Credit Card
+ORD-1005,2024-02-18,West,Smart Plug,Home,Fiona,38,387.1,0.0,Credit Card
+ORD-1071,2024-02-19,South,Smart Bulb,Home,Charlie,94,16636.9,0.11,Cash
+ORD-1103,2024-02-21,West,Gadget X,Electronics,George,9,1607.37,0.0,PayPal
+ORD-1138,2024-02-21,Central,Bluetooth Earbuds,Accessories,Charlie,61,8597.83,0.0,PayPal
+ORD-1031,2024-02-22,West,Desk Mat,Office,Bob,33,833.38,0.0,Credit Card
+ORD-1029,2024-02-23,Central,Wireless Charger,Accessories,Evan,33,5129.2,0.28,Wire Transfer
+ORD-1017,2024-02-24,North,Cable Pack,Accessories,Alice,50,55421.55,0.18,Cash
+ORD-1168,2024-03-09,Central,Smart Plug,Home,George,27,26203.51,0.0,Wire Transfer
+ORD-1057,2024-03-15,North,Cable Pack,Accessories,Evan,81,5996.22,0.29,Credit Card
+ORD-1188,2024-03-16,South,Widget A,Electronics,,75,5807.34,0.0,PayPal
+ORD-1087,2024-03-18,Central,Desk Mat,Office,Charlie,86,6333.78,0.11,Cash
+ORD-1006,2024-03-19,South,Bluetooth Earbuds,Accessories,George,21,3322.11,0.0,PayPal
+ORD-1010,2024-03-21,North,Monitor Stand,Office,Hannah,51,5191.33,0.0,Credit Card
+ORD-1194,2024-03-22,North,Phone Case,Accessories,Hannah,17,1311.44,0.15,PayPal
+ORD-1198,2024-03-25,North,Mechanical Keyboard,Office,Bob,10,2338.55,0.0,PayPal
+ORD-1075,2024-03-28,North,Gadget X,Electronics,Fiona,37,48783.41,0.12,Credit Card
+ORD-1016,2024-03-30,,Monitor Stand,Office,Bob,44,29320.1,0.28,PayPal
+ORD-1050,2024-03-31,North,Monitor Stand,Office,Alice,27,2974.82,0.0,Cash
+ORD-1021,2024-03-31,,Widget B,Electronics,Charlie,78,4448.8,0.0,Credit Card
+ORD-1179,2024-04-05,Central,Mechanical Keyboard,Office,Hannah,92,22164.77,0.0,Cash
+ORD-1195,2024-04-05,East,Smart Bulb,Home,Evan,92,6902.74,0.08,Credit Card
+ORD-1128,2024-04-06,South,Cable Pack,Accessories,Charlie,92,1935.74,0.06,Credit Card
+ORD-1002,2024-04-11,North,Bluetooth Earbuds,Accessories,Fiona,87,2082.79,0.0,Credit Card
+ORD-1034,2024-04-19,South,Desk Mat,Office,Charlie,35,4316.61,0.0,PayPal
+ORD-1008,2024-04-19,West,Wireless Charger,Accessories,Charlie,59,6252.03,0.06,Cash
+ORD-1083,2024-04-28,South,Gadget Y,Electronics,George,33,473.16,0.17,Credit Card
+ORD-1127,2024-04-29,South,Smartphone Z,Electronics,Bob,86,1157.08,0.0,Wire Transfer
+ORD-1166,2024-05-06,East,Gadget Y,Electronics,Diana,17,582.58,0.07,Wire Transfer
+ORD-1025,2024-05-07,North,Mechanical Keyboard,Office,Evan,41,3325.33,0.09,Cash
+ORD-1108,2024-05-08,South,Smart Bulb,Home,Charlie,16,354.95,0.0,Credit Card
+ORD-1055,2024-05-11,North,Phone Case,Accessories,Charlie,58,13977.27,0.0,Cash
+ORD-1095,2024-05-11,North,Mechanical Keyboard,Office,Diana,46,11131.87,0.0,Wire Transfer
+ORD-1073,2024-05-14,Central,Bluetooth Earbuds,Accessories,Bob,60,4355.94,0.0,PayPal
+ORD-1193,2023-02-10,North,Desk Lamp,Home,Diana,64,7601.78,0.0,Cash
+ORD-1143,2023-04-03,,Smart Bulb,Home,George,26,4513.27,0.14,Credit Card
+ORD-1119,2023-05-04,North,Laptop Pro,Electronics,Diana,30,595.69,0.15,Wire Transfer

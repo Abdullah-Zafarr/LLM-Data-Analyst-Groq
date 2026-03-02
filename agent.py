@@ -110,7 +110,6 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
     while iteration < MAX_ITERATIONS:
         iteration += 1
         logger.debug("Agent loop iteration %d/%d", iteration, MAX_ITERATIONS)
-        logger.debug("Agent loop iteration %d/%d", iteration, MAX_ITERATIONS)
 
         # Call Groq with tool schemas
         try:
@@ -132,7 +131,6 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
                 })
                 continue
             # Other API errors — return gracefully
-            logger.error("Groq API error: %s", err_str)
             logger.error("Groq API error: %s", err_str)
             return {
                 "response": f"API error: {err_str}",
@@ -173,8 +171,6 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
 
             logger.info("Calling tool '%s' with args: %s", function_name, function_args)
 
-            logger.info("Calling tool '%s' with args: %s", function_name, function_args)
-
             # Log the tool call
             log_entry = {
                 "tool": function_name,
@@ -190,7 +186,6 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
                 except TypeError as e:
                     function_response = json.dumps({"error": f"Invalid arguments: {str(e)}"})
                 except Exception as e:
-                    logger.exception("Tool '%s' raised an exception", function_name)
                     logger.exception("Tool '%s' raised an exception", function_name)
                     function_response = json.dumps({"error": f"Tool execution error: {str(e)}"})
             else:
