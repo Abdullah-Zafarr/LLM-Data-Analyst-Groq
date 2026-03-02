@@ -271,7 +271,7 @@ with st.sidebar:
 
     uploaded_file = st.file_uploader(
         "Drop your CSV or Excel file",
-        type=["csv", "xlsx", "xls"],
+        type=["csv", "tsv", "xlsx", "xls"],
         label_visibility="collapsed",
     )
 
