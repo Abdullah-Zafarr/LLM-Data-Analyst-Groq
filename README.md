@@ -10,9 +10,13 @@
 
 ![DataMind AI Interface](assets/interface%201.PNG)
 
-### Analysis Output
+### Analysis in Action
 
-![DataMind AI Output](assets/output%202.PNG)
+![DataMind AI Analysis Demo](assets/analysis_demo.PNG)
+
+### Chart Generation
+
+![DataMind AI Chart Output](assets/chart_revenue.PNG)
 
 ---
 
