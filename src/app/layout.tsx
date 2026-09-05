@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DataMind AI — Autonomous Conversational Data Analyst",
-  description: "Autonomous data analyst translating natural language queries to sandboxed execution containers powered by Groq LPU inference.",
+  title: "DataMind — Ask better questions of your data",
+  description: "A conversational data workspace for exploring, cleaning, visualizing, and explaining CSV datasets with Groq.",
 };
 
 export default function RootLayout({
@@ -12,10 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="antialiased selection:bg-cyan-500/20 selection:text-cyan-300">
-        {children}
-      </body>
+    <html lang="en">
+      <body>{children}</body>
     </html>
   );
 }

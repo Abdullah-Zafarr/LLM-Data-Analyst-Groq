@@ -1,120 +1,128 @@
-# DataMind AI — Autonomous Conversational Data Analyst
+# DataMind
 
-> **Autonomous conversational data analyst translating natural language queries to sandboxed Pandas execution containers powered by Groq LPU inference and self-correcting debug loops.**
+### Ask better questions of your data.
 
-<p align="center">
-  <a href="https://llm-data-analyst-groq.vercel.app"><img src="https://img.shields.io/badge/Live_Deployment-llm--data--analyst--groq.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live on Vercel" /></a>
-  <img src="https://img.shields.io/badge/Next.js_15-App_Router-000000?style=for-the-badge&logo=next.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" />
-  <img src="https://img.shields.io/badge/Groq-LPU_Inference-F55036?style=for-the-badge&logo=groq&logoColor=white" />
-  <img src="https://img.shields.io/badge/REPL_Fix_Rate-91%25_Benchmark-10B981?style=for-the-badge" />
-</p>
+DataMind is a conversational data workspace that turns a CSV into an explorable analysis desk. Ask questions in plain language, inspect the dataset's structure, search raw records, prepare a clean working copy, and turn findings into a concise decision brief.
 
----
+[Live demo](https://llm-data-analyst-groq.vercel.app) | [Report an issue](https://github.com/Abdullah-Zafarr/LLM-Data-Analyst-Groq/issues)
 
-## ⚡ Architectural Overview
+![Next.js](https://img.shields.io/badge/Next.js_15-151b2b?style=flat-square&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-151b2b?style=flat-square&logo=typescript&logoColor=90b7ff)
+![Groq](https://img.shields.io/badge/Groq_LPU-151b2b?style=flat-square&logoColor=ff6b4a)
+![Vercel](https://img.shields.io/badge/Deployed_on_Vercel-151b2b?style=flat-square&logo=vercel&logoColor=white)
 
-DataMind AI is engineered for production-grade data reasoning, combining **sub-second Groq LPU function calling** with a **sandboxed self-correcting REPL execution environment**.
+## Why DataMind
 
-```
-User Query: "Identify top churn risk factors and plot monthly charges distribution"
-  ↓
-Groq LPU Engine (Llama 3.3 70B) → Emits tool call: run_query(code="...")
-  ↓
-Sandboxed REPL Container → Executes with restricted globals
-  ├── [On Exception]: Intercepts traceback → Prompts self-correction diff loop (91% repair rate)
-  └── [On Success]: Emits structured JSON + execution metrics
-  ↓
-Dual Visualizer Engine → Renders Plotly Interactive Graph + Telemetry Ribbon
-```
+Most "chat with your CSV" demos stop at a message box. DataMind treats analysis as a full workflow:
 
----
+| Workspace | What it does |
+| --- | --- |
+| **Ask DataMind** | Runs conversational analysis with dataset-aware prompt starters, charts, execution traces, and inference telemetry. |
+| **Overview** | Profiles rows, fields, numeric features, missing cells, duplicates, schema types, and column completeness. |
+| **Records** | Provides full-dataset search, adjustable row views, sticky table navigation, and CSV export. |
+| **Prepare** | Applies transparent in-memory cleaning recipes for duplicate and incomplete rows without touching the source file. |
+| **Brief** | Generates and downloads an executive-ready Markdown readout. |
 
-## 🚀 Key Production Capabilities
+Three embedded benchmark datasets make the full product testable without setup: retail sales, SaaS churn, and clinical trials.
 
-### 1. 💬 Autonomous Copilot & Self-Correcting REPL
-- **Dynamic Contextual Chips**: Generates dataset-specific quick queries automatically upon ingestion.
-- **Traceback Self-Repair**: When code execution fails due to schema drift or syntax mismatches, the agent introspects the error, auto-repairs the query, and surfaces the before/after diff.
-- **Full LPU Telemetry**: Displays per-turn latency (ms), token generation rate (tok/s), and sandbox execution overhead.
+## Product highlights
 
-### 2. 🔬 Automated EDA & Health Profiler
-- **Instant Health Scorecard**: Row counts, dimensions, completeness rate, duplicate records, and memory footprint.
-- **Interactive Nulls Radar & Correlation Matrix**: Visual heatmap and missing value distributions powered by Plotly.
-- **Distribution & Outlier Inspector**: Marginal box plots, histograms, IQR bounds, and skewness calculations.
+- Natural-language analysis backed by Groq LPU models
+- Dataset context sent with every analytical request
+- AI-generated bar, line, scatter, pie, and box-compatible visual responses
+- Self-correction visibility when an execution step needs repair
+- Per-response latency, token, and throughput telemetry
+- Automatic structural profiling and field-level completeness
+- Instant full-record search and prepared CSV export
+- Responsive workspace navigation for desktop and mobile
+- Local API-key persistence in the browser
+- Serverless Next.js API routes, ready for Vercel
 
-### 3. 📑 Data Explorer Studio
-- Full-text search and regex filtering across all columns simultaneously.
-- Dynamic schema inspector showing inferred types, null counts, and distinct value cardinality.
+## Architecture
 
-### 4. 🛠️ One-Click Cleaning Recipes
-- Automated visual transformations: Imputation (mean, median, mode), duplicate removal, 3-sigma outlier filtering, and column dropping.
-
-### 5. 📊 Executive Intelligence Report Generator
-- One-click synthesis of an executive briefing summarizing dataset architecture, statistical indicators, segment anomalies, and strategic actions.
-- Downloadable in both **Markdown (.md)** and **HTML** formats.
-
----
-
-## 🛠️ Tool Registry
-
-| Tool | Engine | Description |
-|------|--------|-------------|
-| `load_dataset` | Pandas | Intelligent sampling (>50k rows), schema profiling, and memory storage |
-| `run_query` | Sandboxed REPL | Vectorized Pandas execution with timing and traceback introspection |
-| `create_interactive_chart` | Plotly Express | Responsive, zoomable charts with hover tooltips and custom themes |
-| `create_chart` | Matplotlib | High-res 180-DPI publication graphics saved to disk |
-| `export_results` | CSV / Series | Filtered dataset exports with download buttons |
-| `clean_data` | Pipeline | In-place data transformations and schema remodeling |
-| `get_data_profile` | NumPy / Stats | Statistical distributions, correlation matrix, and skewness metrics |
-| `generate_executive_report` | Markdown / HTML | Strategic executive data intelligence summary |
-
----
-
-## 📂 Project Structure
-
-```
-├── app.py                  # Streamlit Mission Control frontend (5 workspace tabs)
-├── agent.py                # Groq LPU orchestration loop & self-correcting REPL
-├── tools.py                # Sandboxed execution tools & Plotly/Matplotlib engines
-├── tool_schemas.py         # JSON schema specifications for Groq function calling
-├── sample_data/
-│   ├── sales_data.csv      # Retail E-Commerce demo dataset
-│   ├── saas_churn.csv      # B2B SaaS subscription & churn telemetry
-│   └── clinical_trials.csv # Healthcare patient trial & biomarker telemetry
-├── pyproject.toml          # uv package configuration
-└── README.md
+```text
+CSV / TSV upload
+      |
+      v
+Papa Parse (client-side parsing + type inference)
+      |
+      +--------> Overview / Records / Prepare
+      |
+      v
+Next.js API route
+      |
+      v
+Groq tool-calling loop
+      |
+      +--------> analytical response
+      +--------> chart specification
+      +--------> execution trace
+      +--------> inference telemetry
 ```
 
----
+The browser owns the working dataset. Analysis requests send a bounded sample to the serverless API, where the selected Groq model can reason over the schema and invoke the supported analysis tools. Structured results return to the React workspace for rendering.
 
-## ⚡ Quick Start
+## Run locally
 
-### 1. Clone & Install Dependencies
+### 1. Install
 
 ```bash
-uv sync
-# Or with pip:
-# pip install groq streamlit pandas plotly matplotlib openpyxl python-dotenv numpy
+git clone https://github.com/Abdullah-Zafarr/LLM-Data-Analyst-Groq.git
+cd LLM-Data-Analyst-Groq
+npm install
 ```
 
-### 2. Configure Groq API Key
+### 2. Configure
 
-Copy `.env.example` to `.env` or enter your key directly in the sidebar UI:
-```bash
-GROQ_API_KEY=gsk_your_groq_api_key_here
-```
-*(Get a free API key at [console.groq.com/keys](https://console.groq.com/keys))*
-
-### 3. Launch Mission Control
+Create `.env.local`:
 
 ```bash
-uv run streamlit run app.py
+GROQ_API_KEY=gsk_your_key_here
 ```
 
-Open [http://localhost:8501](http://localhost:8501) in your browser.
+You can also enter a Groq key directly in the workspace. The key is stored in browser local storage for that device.
 
----
+### 3. Start
 
-## 📄 License
+```bash
+npm run dev
+```
 
-MIT © [Abdullah Zafar](https://github.com/Abdullah-Zafarr)
+Open [http://localhost:3000](http://localhost:3000).
+
+## Project structure
+
+```text
+src/
+  app/
+    api/
+      chat/route.ts       # conversational analysis and tool loop
+      report/route.ts     # executive brief generation
+    globals.css           # complete responsive product design system
+    layout.tsx            # metadata and root layout
+    page.tsx              # five-view analysis workspace
+  components/
+    ChartRenderer.tsx     # dependency-free interactive SVG charts
+sample_data/
+  sales_data.csv
+  saas_churn.csv
+  clinical_trials.csv
+```
+
+## Production build
+
+```bash
+npm run build
+npm start
+```
+
+## Data and key handling
+
+- Uploaded files are parsed in the browser.
+- The frontend caps the dataset payload sent for an analysis request.
+- A key entered in the interface is stored only in browser local storage.
+- For a public deployment, prefer a server-side `GROQ_API_KEY` environment variable.
+
+## License
+
+MIT License. See [LICENSE](LICENSE).

@@ -1,29 +1,36 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import {
-  Sparkles,
-  Database,
-  BarChart3,
-  Search,
-  Wrench,
-  FileText,
-  Zap,
-  Terminal,
-  Download,
-  Trash2,
-  CheckCircle2,
-  AlertTriangle,
-  Upload,
   ArrowRight,
+  ArrowUp,
+  BarChart3,
+  BookOpenText,
+  Bot,
+  Braces,
+  Check,
+  ChevronRight,
+  CircleGauge,
+  Database,
+  Download,
+  ExternalLink,
+  FileSpreadsheet,
+  FileText,
+  KeyRound,
+  Menu,
+  MessageSquareText,
   RefreshCw,
-  Copy,
-  Layers,
+  Search,
+  Settings2,
+  Table2,
+  Trash2,
+  Upload,
+  Wand2,
+  X,
 } from "lucide-react";
 import ChartRenderer from "@/components/ChartRenderer";
 
-// Default Sample Datasets embedded for zero-latency instant loading
 const SAMPLE_SALES_CSV = `OrderDate,Region,Product,Category,Units,UnitPrice,Revenue,Discount,Profit,PaymentMethod
 2024-01-05,East,Widget Pro,Hardware,45,29.99,1349.55,0.05,404.87,Credit Card
 2024-01-08,West,DataSync Enterprise,Software,12,249.99,2999.88,0.10,1499.94,Wire Transfer
@@ -75,17 +82,46 @@ PT-213,74,Female,Treatment B,250.6,120.4,2,22,81.5,Resolved
 PT-214,56,Male,Control,192.8,188.5,1,36,29.0,Active
 PT-215,48,Female,Treatment A,184.1,92.0,0,14,91.4,Resolved`;
 
+type TabId = "copilot" | "eda" | "explorer" | "clean" | "report";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
-  charts?: any[];
+  charts?: Record<string, any>[];
   telemetry?: Record<string, any>;
-  toolCalls?: any[];
-  selfCorrections?: any[];
+  toolCalls?: Record<string, any>[];
+  selfCorrections?: Record<string, any>[];
 }
 
-export default function MissionControl() {
-  const [activeTab, setActiveTab] = useState<"copilot" | "eda" | "explorer" | "clean" | "report">("copilot");
+const TABS: { id: TabId; label: string; shortLabel: string; icon: React.ElementType }[] = [
+  { id: "copilot", label: "Ask DataMind", shortLabel: "Ask", icon: MessageSquareText },
+  { id: "eda", label: "Overview", shortLabel: "Overview", icon: BarChart3 },
+  { id: "explorer", label: "Records", shortLabel: "Records", icon: Table2 },
+  { id: "clean", label: "Prepare", shortLabel: "Prepare", icon: Wand2 },
+  { id: "report", label: "Brief", shortLabel: "Brief", icon: BookOpenText },
+];
+
+const DATASETS = [
+  { name: "Retail sales", description: "15 orders · revenue & margin", accent: "#ff6b4a", load: SAMPLE_SALES_CSV, file: "sales_data.csv" },
+  { name: "SaaS churn", description: "15 accounts · retention signals", accent: "#c6f04f", load: SAMPLE_CHURN_CSV, file: "saas_churn.csv" },
+  { name: "Clinical trials", description: "15 patients · efficacy outcomes", accent: "#90b7ff", load: SAMPLE_CLINICAL_CSV, file: "clinical_trials.csv" },
+];
+
+function DataEmpty({ onLoad }: { onLoad: () => void }) {
+  return (
+    <div className="empty-state">
+      <div className="empty-state-icon"><FileSpreadsheet size={24} strokeWidth={1.7} /></div>
+      <h2>There’s no dataset on the desk yet.</h2>
+      <p>Bring in a CSV or start with a sample to unlock this view.</p>
+      <button className="button button-ink" onClick={onLoad}>
+        Load the sales sample <ArrowRight size={15} />
+      </button>
+    </div>
+  );
+}
+
+export default function DataMindWorkspace() {
+  const [activeTab, setActiveTab] = useState<TabId>("copilot");
   const [records, setRecords] = useState<Record<string, any>[]>([]);
   const [datasetName, setDatasetName] = useState<string | null>(null);
   const [model, setModel] = useState("llama-3.3-70b-versatile");
@@ -93,31 +129,26 @@ export default function MissionControl() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputQuery, setInputQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [telemetry, setTelemetry] = useState<Record<string, any>>({
-    total_inference_time_ms: 0,
-    tokens_per_sec: 0,
-  });
-
-  // Table Search and Pagination
+  const [telemetry, setTelemetry] = useState<Record<string, any>>({ total_inference_time_ms: 0, tokens_per_sec: 0 });
   const [searchFilter, setSearchFilter] = useState("");
   const [rowLimit, setRowLimit] = useState(25);
-
-  // Executive Report State
   const [reportMarkdown, setReportMarkdown] = useState<string | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cleaningNotice, setCleaningNotice] = useState<string | null>(null);
+  const [recordHistory, setRecordHistory] = useState<Record<string, any>[][]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load API key from localStorage
   useEffect(() => {
     const savedKey = localStorage.getItem("datamind_groq_key");
     if (savedKey) setApiKey(savedKey);
   }, []);
 
-  const handleApiKeyChange = (val: string) => {
-    setApiKey(val);
-    localStorage.setItem("datamind_groq_key", val);
+  const handleApiKeyChange = (value: string) => {
+    setApiKey(value);
+    localStorage.setItem("datamind_groq_key", value);
   };
 
-  // Helper: parse CSV into records
   const parseAndLoadCsv = (csvString: string, name: string) => {
     Papa.parse(csvString, {
       header: true,
@@ -127,735 +158,672 @@ export default function MissionControl() {
         setRecords(results.data as Record<string, any>[]);
         setDatasetName(name);
         setReportMarkdown(null);
+        setMessages([]);
+        setSearchFilter("");
+        setCleaningNotice(null);
+        setRecordHistory([]);
+        setMobileMenuOpen(false);
       },
     });
   };
 
-  // Upload Custom CSV
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const loadLocalFile = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
+    reader.onload = (loaded) => {
+      const text = loaded.target?.result as string;
       if (text) parseAndLoadCsv(text, file.name);
     };
     reader.readAsText(file);
   };
 
-  // Dynamic Suggestion Chips
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    loadLocalFile(file);
+    event.target.value = "";
+  };
+
+  const clearDataset = () => {
+    setRecords([]);
+    setDatasetName(null);
+    setMessages([]);
+    setReportMarkdown(null);
+    setSearchFilter("");
+    setCleaningNotice(null);
+    setRecordHistory([]);
+  };
+
+  const commitCleanedRecords = (nextRecords: Record<string, any>[], notice: string) => {
+    setRecordHistory((current) => [...current.slice(-4), records]);
+    setRecords(nextRecords);
+    setCleaningNotice(notice);
+  };
+
+  const undoLastClean = () => {
+    setRecordHistory((current) => {
+      const previous = current[current.length - 1];
+      if (previous) {
+        setRecords(previous);
+        setCleaningNotice("Last transformation undone.");
+      }
+      return current.slice(0, -1);
+    });
+  };
+
   const suggestions = useMemo(() => {
     if (!datasetName) return [];
-    if (datasetName.includes("sales")) {
-      return [
-        "Revenue and profit breakdown grouped by Region",
-        "Create a bar chart of Revenue by Product",
-        "Calculate correlation between Units and Revenue",
-        "Detect revenue outliers using IQR and list top rows",
-      ];
-    }
-    if (datasetName.includes("churn")) {
-      return [
-        "Calculate churn rate across ContractType segments",
-        "Plot scatter of MonthlyCharges vs TotalCharges by Churn",
-        "Compare average NPS score and SupportTickets by Churn",
-        "Identify top 5 highest paying customers with Churn Yes",
-      ];
-    }
-    if (datasetName.includes("clinical")) {
-      return [
-        "Compare Biomarker improvement across Cohorts",
-        "Plot a chart of RecoveryDays by Cohort",
-        "Find correlation between Age and EfficacyScore",
-        "Summarize AdverseEvents and recovery status",
-      ];
-    }
-    const cols = records.length > 0 ? Object.keys(records[0]) : [];
+    const name = datasetName.toLowerCase();
+    if (name.includes("sales")) return [
+      "Which region is driving the most profit?",
+      "Chart revenue by product and explain the pattern",
+      "Is the discount rate helping or hurting margin?",
+      "Flag unusual orders that deserve a closer look",
+    ];
+    if (name.includes("churn")) return [
+      "Where is churn risk most concentrated?",
+      "Compare monthly charges across churn groups",
+      "How do support tickets relate to retention?",
+      "Which high-value accounts are most at risk?",
+    ];
+    if (name.includes("clinical")) return [
+      "Compare biomarker improvement by cohort",
+      "Chart recovery time across treatment groups",
+      "Does age appear related to efficacy?",
+      "Summarize adverse events and outcomes",
+    ];
+    const columns = records.length ? Object.keys(records[0]) : [];
     return [
-      `Summarize key statistics for ${cols.slice(0, 3).join(", ")}`,
-      `Find distributions and missing values in this dataset`,
-      `Detect statistical outliers across primary numeric features`,
+      `Give me a concise profile of ${columns.slice(0, 3).join(", ")}`,
+      "Find missing values and distribution issues",
+      "Surface the most decision-relevant patterns",
     ];
   }, [datasetName, records]);
 
-  // Execute Agent Chat
   const runChatQuery = async (queryText: string) => {
     if (!queryText.trim() || isLoading) return;
-
-    const userMsg: Message = { role: "user", content: queryText };
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((current) => [...current, { role: "user", content: queryText.trim() }]);
     setInputQuery("");
     setIsLoading(true);
-
     try {
-      const res = await fetch("/api/chat", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_message: queryText,
-          dataset_records: records.length > 0 ? records.slice(0, 300) : null,
+          user_message: queryText.trim(),
+          dataset_records: records.length ? records.slice(0, 300) : null,
           dataset_name: datasetName || "dataset.csv",
           model,
           api_key: apiKey || undefined,
         }),
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.detail || "Failed to process chat query");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "The analysis could not be completed.");
       }
-
-      const data = await res.json();
+      const data = await response.json();
       setTelemetry(data.telemetry || {});
-
-      const assistantMsg: Message = {
+      setMessages((current) => [...current, {
         role: "assistant",
         content: data.response,
         charts: data.charts || [],
         telemetry: data.telemetry || {},
         toolCalls: data.tool_calls_log || [],
         selfCorrections: data.telemetry?.self_corrections || [],
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err: any) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: `⚠️ Error: ${err.message || "Failed to communicate with Groq LPU engine. Check API key."}`,
-        },
-      ]);
+      }]);
+    } catch (error: any) {
+      setMessages((current) => [...current, {
+        role: "assistant",
+        content: `I hit a snag: ${error.message || "Check your Groq API key and try again."}`,
+      }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Filtered Records for Data Grid
   const filteredRecords = useMemo(() => {
     if (!searchFilter) return records;
-    return records.filter((r) =>
-      Object.values(r).some((val) =>
-        String(val).toLowerCase().includes(searchFilter.toLowerCase())
-      )
+    const term = searchFilter.toLowerCase();
+    return records.filter((record) =>
+      Object.values(record).some((value) => String(value ?? "").toLowerCase().includes(term))
     );
   }, [records, searchFilter]);
 
-  // Compute EDA Health Metrics
   const edaMetrics = useMemo(() => {
-    if (records.length === 0) return null;
-    const nRows = records.length;
-    const cols = Object.keys(records[0]);
-    const nCols = cols.length;
-
+    if (!records.length) return null;
+    const columns = Object.keys(records[0]);
     let totalNulls = 0;
-    const nullsByCol: Record<string, number> = {};
-    const numericCols: string[] = [];
-
-    cols.forEach((col) => {
-      let colNulls = 0;
-      let isNumeric = true;
-
+    const nullsByColumn: Record<string, number> = {};
+    const numericColumns: string[] = [];
+    columns.forEach((column) => {
+      let columnNulls = 0;
+      let numeric = true;
       records.forEach((row) => {
-        const val = row[col];
-        if (val === null || val === undefined || val === "") {
-          colNulls++;
-          totalNulls++;
-        } else if (typeof val !== "number") {
-          isNumeric = false;
+        const value = row[column];
+        if (value === null || value === undefined || value === "") {
+          columnNulls += 1;
+          totalNulls += 1;
+        } else if (typeof value !== "number") {
+          numeric = false;
         }
       });
-
-      nullsByCol[col] = colNulls;
-      if (isNumeric) numericCols.push(col);
+      nullsByColumn[column] = columnNulls;
+      if (numeric) numericColumns.push(column);
     });
-
-    const completeness = Math.max(0, 100 - (totalNulls / (nRows * nCols)) * 100);
-
+    const duplicateCount = records.length - new Set(records.map((row) => JSON.stringify(row))).size;
+    const cellCount = Math.max(records.length * columns.length, 1);
     return {
-      nRows,
-      nCols,
-      cols,
+      rows: records.length,
+      columns,
       totalNulls,
-      nullsByCol,
-      numericCols,
-      completeness: completeness.toFixed(1),
+      nullsByColumn,
+      numericColumns,
+      duplicateCount,
+      completeness: Math.max(0, 100 - (totalNulls / cellCount) * 100),
     };
   }, [records]);
 
-  // Generate Executive Report
   const generateReport = async () => {
-    if (records.length === 0) return;
+    if (!records.length) return;
     setIsGeneratingReport(true);
     try {
-      const res = await fetch("/api/report", {
+      const response = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          records: records.slice(0, 200),
-          dataset_name: datasetName || "Active Dataset",
-        }),
+        body: JSON.stringify({ records: records.slice(0, 200), dataset_name: datasetName || "Active dataset" }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setReportMarkdown(data.report_markdown);
-      }
+      if (!response.ok) throw new Error("Report service unavailable");
+      const data = await response.json();
+      setReportMarkdown(data.report_markdown);
     } catch {
-      // Fallback local report generator
-      setReportMarkdown(`# Executive Intelligence Analysis — ${datasetName}
-> **Generated by DataMind AI** · Vercel Serverless Architecture
+      setReportMarkdown(`# Analysis brief — ${datasetName}
 
-## 1. Dataset Architecture & Health
-- **Volume:** ${records.length} records × ${Object.keys(records[0] || {}).length} dimensions
-- **Completeness:** ${edaMetrics?.completeness || 100}%
+## Dataset health
+- ${records.length} records across ${Object.keys(records[0] || {}).length} fields
+- ${edaMetrics?.completeness.toFixed(1) || 100}% complete
+- ${edaMetrics?.duplicateCount || 0} duplicate records detected
 
-## 2. Key Takeaways
-- Dataset parsed cleanly with zero client latency.
-- High-fidelity numeric features ready for inference.`);
+## Readout
+The dataset parsed successfully and is ready for focused analysis. Use Ask DataMind to investigate a business question or open Overview for a fast structural profile.`);
     } finally {
       setIsGeneratingReport(false);
     }
   };
 
+  const downloadCsv = () => {
+    if (!records.length) return;
+    const url = URL.createObjectURL(new Blob([Papa.unparse(records)], { type: "text/csv;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = datasetName?.replace(/\.csv$/i, "-prepared.csv") || "prepared-data.csv";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const loadDefault = () => parseAndLoadCsv(SAMPLE_SALES_CSV, "sales_data.csv");
+  const activeTabMeta = TABS.find((tab) => tab.id === activeTab) || TABS[0];
+
   return (
-    <div className="min-h-screen bg-[#06090F] text-slate-100 flex flex-col">
-      {/* Top Header & Telemetry Strip */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#090D18]/80 border-b border-white/[0.07] px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-mono font-bold text-lg">
-              ⚡
-            </div>
-            <div>
-              <div className="font-mono font-bold text-lg tracking-tight text-white flex items-center gap-2">
-                DataMind<span className="text-cyan-400">AI</span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                  Vercel Serverless
-                </span>
-              </div>
-              <div className="text-[11px] font-mono text-slate-400">
-                Autonomous REPL & Groq LPU Data Analyst
-              </div>
-            </div>
-          </div>
+    <div className="workspace-shell">
+      {mobileMenuOpen && (
+        <button aria-label="Close workspace menu" className="sidebar-scrim" onClick={() => setMobileMenuOpen(false)} />
+      )}
 
-          {/* Telemetry Ribbon */}
-          <div className="hidden md:flex items-center gap-5 text-xs font-mono text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-              <span>REPL:</span>
-              <span className="text-emerald-400 font-semibold">Active</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span>Model:</span>
-              <span className="text-cyan-400 font-semibold">{model.replace("-versatile", "").replace("-instant", "")}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span>LPU Latency:</span>
-              <span className="text-cyan-400 font-semibold">{telemetry.total_inference_time_ms || 0}ms</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span>Speed:</span>
-              <span className="text-cyan-400 font-semibold">{telemetry.tokens_per_sec || 0} tok/s</span>
-            </div>
-          </div>
+      <aside className={`workspace-sidebar ${mobileMenuOpen ? "is-open" : ""}`}>
+        <div className="sidebar-topline">
+          <a className="wordmark" href="#" aria-label="DataMind home">
+            <span className="wordmark-mark">D</span><span>DataMind</span>
+          </a>
+          <button className="icon-button mobile-only" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
+            <X size={18} />
+          </button>
         </div>
-      </header>
 
-      {/* Main Workspace Layout */}
-      <div className="max-w-7xl mx-auto w-full px-4 md:px-6 py-6 flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Sidebar Control Panel */}
-        <aside className="lg:col-span-1 space-y-5">
-          {/* LPU Engine Selector */}
-          <div className="p-4 rounded-xl border border-white/[0.07] bg-[#0B0F1C]/70 backdrop-blur-md">
-            <label className="block text-[11px] font-mono uppercase text-slate-400 tracking-wider mb-2">
-              LPU Engine
-            </label>
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500/50"
-            >
-              <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Deep Reasoning)</option>
-              <option value="llama-3.1-8b-instant">Llama 3.1 8B (Ultra Fast)</option>
-            </select>
-          </div>
-
-          {/* Groq API Key Box */}
-          <div className="p-4 rounded-xl border border-white/[0.07] bg-[#0B0F1C]/70 backdrop-blur-md">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[11px] font-mono uppercase text-slate-400 tracking-wider">
-                Groq API Key
-              </label>
-              <a
-                href="https://console.groq.com/keys"
-                target="_blank"
-                rel="noreferrer"
-                className="text-[10px] text-cyan-400 hover:underline font-mono"
-              >
-                Free Key ↗
-              </a>
-            </div>
-            <input
-              type="password"
-              placeholder="gsk_..."
-              value={apiKey}
-              onChange={(e) => handleApiKeyChange(e.target.value)}
-              className="w-full bg-slate-900 border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50"
-            />
-          </div>
-
-          {/* Dataset Ingestion */}
-          <div className="p-4 rounded-xl border border-white/[0.07] bg-[#0B0F1C]/70 backdrop-blur-md space-y-3">
-            <div className="text-[11px] font-mono uppercase text-slate-400 tracking-wider">
-              Dataset Ingestion
-            </div>
-
-            <label className="flex items-center justify-center gap-2 border border-dashed border-cyan-500/30 hover:border-cyan-400/60 bg-cyan-950/20 hover:bg-cyan-950/30 rounded-lg p-3 cursor-pointer text-xs font-mono text-cyan-300 transition-all">
-              <Upload className="w-4 h-4" />
-              <span>Upload CSV File</span>
-              <input
-                type="file"
-                accept=".csv,.tsv"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
-
-            {/* Curated Datasets */}
-            <div className="pt-2">
-              <div className="text-[10px] font-mono uppercase text-slate-500 mb-2">
-                Or Load Benchmark Datasets
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => parseAndLoadCsv(SAMPLE_SALES_CSV, "sales_data.csv")}
-                  className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/5 text-[11px] font-mono text-slate-300 text-left transition-all flex items-center gap-1.5"
-                >
-                  <span>🛒</span> Sales
-                </button>
-                <button
-                  onClick={() => parseAndLoadCsv(SAMPLE_CHURN_CSV, "saas_churn.csv")}
-                  className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/5 text-[11px] font-mono text-slate-300 text-left transition-all flex items-center gap-1.5"
-                >
-                  <span>🔄</span> Churn
+        <div className="sidebar-scroll">
+          <section className="sidebar-section">
+            <div className="eyebrow sidebar-eyebrow">Your data</div>
+            {datasetName ? (
+              <div className="active-dataset-card">
+                <div className="dataset-file-icon"><FileSpreadsheet size={20} /></div>
+                <div className="min-w-0">
+                  <div className="dataset-file-name">{datasetName}</div>
+                  <div className="dataset-file-meta">{records.length} rows · {Object.keys(records[0] || {}).length} fields</div>
+                </div>
+                <button className="dataset-remove" onClick={clearDataset} aria-label="Remove dataset" title="Remove dataset">
+                  <Trash2 size={15} />
                 </button>
               </div>
+            ) : (
               <button
-                onClick={() => parseAndLoadCsv(SAMPLE_CLINICAL_CSV, "clinical_trials.csv")}
-                className="w-full mt-2 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/5 text-[11px] font-mono text-slate-300 text-left transition-all flex items-center gap-1.5"
+                className="upload-dropzone"
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  const file = event.dataTransfer.files?.[0];
+                  if (file) loadLocalFile(file);
+                }}
               >
-                <span>🩺</span> Clinical Trials Telemetry
+                <Upload size={18} />
+                <span><strong>Choose a CSV</strong><small>or drop it here</small></span>
               </button>
-            </div>
-
-            {/* Active Dataset Status */}
-            {datasetName && (
-              <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                <div className="text-xs font-mono text-cyan-400 truncate max-w-[140px]">
-                  ✓ {datasetName}
-                </div>
-                <button
-                  onClick={() => {
-                    setRecords([]);
-                    setDatasetName(null);
-                  }}
-                  className="text-slate-500 hover:text-rose-400 p-1"
-                  title="Unload dataset"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
             )}
+            {datasetName && (
+              <button className="sidebar-text-button" onClick={() => fileInputRef.current?.click()}>
+                <Upload size={14} /> Replace dataset
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.tsv,text/csv,text/tab-separated-values"
+              onChange={handleFileUpload}
+              className="sr-only"
+            />
+          </section>
+
+          <section className="sidebar-section">
+            <div className="eyebrow sidebar-eyebrow">Sample desks</div>
+            <div className="dataset-list">
+              {DATASETS.map((dataset) => (
+                <button
+                  key={dataset.file}
+                  className={`dataset-list-item ${datasetName === dataset.file ? "is-active" : ""}`}
+                  onClick={() => parseAndLoadCsv(dataset.load, dataset.file)}
+                >
+                  <span className="dataset-accent" style={{ backgroundColor: dataset.accent }} />
+                  <span><strong>{dataset.name}</strong><small>{dataset.description}</small></span>
+                  <ChevronRight size={15} />
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="sidebar-section sidebar-settings">
+            <div className="eyebrow sidebar-eyebrow"><span>Connection</span><Settings2 size={13} /></div>
+            <label className="field-label" htmlFor="model-select">Model</label>
+            <select id="model-select" value={model} onChange={(event) => setModel(event.target.value)} className="sidebar-select">
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B · deep</option>
+              <option value="llama-3.1-8b-instant">Llama 3.1 8B · fast</option>
+            </select>
+            <div className="field-row">
+              <label className="field-label" htmlFor="api-key">Groq API key</label>
+              <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer">Get one <ExternalLink size={11} /></a>
+            </div>
+            <div className="key-field">
+              <KeyRound size={14} />
+              <input
+                id="api-key"
+                type="password"
+                placeholder="gsk_••••••••"
+                value={apiKey}
+                onChange={(event) => handleApiKeyChange(event.target.value)}
+                autoComplete="off"
+              />
+              {apiKey && <Check size={14} className="key-check" />}
+            </div>
+          </section>
+        </div>
+
+        <div className="sidebar-footer">
+          <span className="status-dot" /><span>Analysis engine ready</span><span className="sidebar-version">v1.0</span>
+        </div>
+      </aside>
+
+      <div className="workspace-main">
+        <header className="workspace-header">
+          <div className="header-title-group">
+            <button className="icon-button mobile-only" onClick={() => setMobileMenuOpen(true)} aria-label="Open workspace menu">
+              <Menu size={19} />
+            </button>
+            <div>
+              <div className="header-kicker">Workspace / {activeTabMeta.label}</div>
+              <h1>{datasetName ? datasetName.replace(/\.[^/.]+$/, "").replace(/_/g, " ") : "Untitled analysis"}</h1>
+            </div>
           </div>
-        </aside>
-
-        {/* Right Main Studio View */}
-        <main className="lg:col-span-3 space-y-4">
-          {/* 5-Tab Navigation Bar */}
-          <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-xl bg-[#0A0E1A] border border-white/[0.07]">
-            <button
-              onClick={() => setActiveTab("copilot")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono transition-all ${
-                activeTab === "copilot"
-                  ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Analyst Copilot</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("eda")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono transition-all ${
-                activeTab === "eda"
-                  ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <BarChart3 className="w-3.5 h-3.5" />
-              <span>EDA Profiler</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("explorer")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono transition-all ${
-                activeTab === "explorer"
-                  ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Data Grid</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("clean")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono transition-all ${
-                activeTab === "clean"
-                  ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Wrench className="w-3.5 h-3.5" />
-              <span>Cleaning Studio</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("report")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono transition-all ${
-                activeTab === "report"
-                  ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Executive Report</span>
-            </button>
+          <div className="telemetry-strip">
+            <div><span>Engine</span><strong>{model.includes("70b") ? "70B Deep" : "8B Fast"}</strong></div>
+            <div><span>Latency</span><strong>{telemetry.total_inference_time_ms || "—"}{telemetry.total_inference_time_ms ? " ms" : ""}</strong></div>
+            <div className="telemetry-live"><span className="status-dot" /> Live</div>
           </div>
+        </header>
 
-          {/* TAB 1: COPILOT & CHAT */}
+        <nav className="workspace-tabs" aria-label="Analysis views">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={activeTab === tab.id ? "is-active" : ""}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+              >
+                <Icon size={16} />
+                <span className="tab-long-label">{tab.label}</span>
+                <span className="tab-short-label">{tab.shortLabel}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <main className="content-canvas">
           {activeTab === "copilot" && (
-            <div className="space-y-4">
-              {/* Contextual Smart Prompt Chips */}
-              {suggestions.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
-                    ⚡ Contextual Quick Queries
+            <section className="copilot-view view-enter">
+              {messages.length === 0 ? (
+                <div className="copilot-intro">
+                  <div className="intro-copy">
+                    <div className="eyebrow">Conversational analysis</div>
+                    <h2>Ask a sharper question.<br /><em>Get a useful answer.</em></h2>
+                    <p>DataMind reads the structure, runs the analysis, and explains what matters—without making you write the query.</p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {suggestions.map((s, i) => (
-                      <button
-                        key={i}
-                        onClick={() => runChatQuery(s)}
-                        className="text-left text-xs font-mono bg-slate-900/60 hover:bg-slate-800/80 border border-white/5 hover:border-cyan-500/30 text-slate-300 hover:text-cyan-300 px-3 py-2 rounded-lg transition-all flex items-center justify-between group"
-                      >
-                        <span className="truncate pr-2">{s}</span>
-                        <ArrowRight className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-cyan-400" />
-                      </button>
-                    ))}
-                  </div>
+
+                  {datasetName ? (
+                    <div className="suggestion-grid">
+                      {suggestions.map((suggestion, index) => (
+                        <button key={suggestion} onClick={() => runChatQuery(suggestion)}>
+                          <span className="suggestion-index">0{index + 1}</span>
+                          <span>{suggestion}</span>
+                          <ArrowRight size={16} />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="start-panel">
+                      <div>
+                        <FileSpreadsheet size={20} />
+                        <span><strong>Start with some data</strong><small>Upload a file from the sidebar or open the retail sample.</small></span>
+                      </div>
+                      <button onClick={loadDefault}>Open retail sample <ArrowRight size={15} /></button>
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {/* Chat Stream View */}
-              <div className="min-h-[420px] max-h-[580px] overflow-y-auto space-y-4 pr-1">
-                {messages.length === 0 ? (
-                  <div className="h-[360px] flex flex-col items-center justify-center border border-white/[0.06] rounded-2xl bg-slate-950/40 p-8 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl">
-                      ⚡
-                    </div>
-                    <div className="font-mono text-base font-semibold text-white">
-                      Groq LPU Quantitative Copilot Ready
-                    </div>
-                    <div className="text-xs text-slate-400 max-w-md font-mono">
-                      Upload a dataset or load one of the benchmark datasets on the left, then ask questions, request statistical charts, or execute Pandas queries.
-                    </div>
+              ) : (
+                <div className="conversation">
+                  <div className="conversation-heading">
+                    <div><span className="eyebrow">Analysis thread</span><h2>{messages.length} message{messages.length === 1 ? "" : "s"}</h2></div>
+                    <button className="button button-quiet" onClick={() => setMessages([])}>New thread</button>
                   </div>
-                ) : (
-                  messages.map((m, idx) => (
-                    <div key={idx} className="space-y-2">
-                      {m.role === "user" ? (
-                        <div className="ml-auto max-w-[85%] bg-gradient-to-r from-blue-700 to-indigo-700 text-white text-xs md:text-sm font-sans px-4 py-3 rounded-2xl rounded-tr-sm shadow-md">
-                          {m.content}
+                  <div className="message-list">
+                    {messages.map((message, index) => (
+                      <article key={index} className={`message ${message.role}`}>
+                        <div className="message-avatar">
+                          {message.role === "assistant" ? <Bot size={17} /> : <span>YOU</span>}
                         </div>
-                      ) : (
-                        <div className="p-4 rounded-2xl rounded-tl-sm border border-white/[0.08] bg-[#0D1222]/80 backdrop-blur-md space-y-3">
-                          {/* Telemetry Badge */}
-                          {m.telemetry && (
-                            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-cyan-500/10 border border-cyan-500/20 text-[11px] font-mono text-cyan-300">
-                              <Zap className="w-3 h-3 text-cyan-400" />
-                              <span>
-                                {m.telemetry.total_inference_time_ms || 0}ms · {m.telemetry.tokens_per_sec || 0} tok/s · {m.telemetry.total_tokens || 0} tokens
-                              </span>
-                            </div>
+                        <div className="message-body">
+                          <div className="message-label">{message.role === "assistant" ? "DataMind" : "You"}</div>
+                          <div className="message-content">{message.content}</div>
+                          {message.selfCorrections && message.selfCorrections.length > 0 && (
+                            <div className="correction-note"><RefreshCw size={14} /> The analysis repaired one execution step automatically.</div>
                           )}
-
-                          {/* Self-Correction Badge */}
-                          {m.selfCorrections && m.selfCorrections.length > 0 && (
-                            <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono space-y-1">
-                              <div className="flex items-center gap-2 font-semibold">
-                                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                                <span>Self-Corrected in 1 retry: Repaired {m.selfCorrections[0].error}</span>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Assistant Message Body */}
-                          <div className="text-xs md:text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">
-                            {m.content}
-                          </div>
-
-                          {/* Render Charts if generated */}
-                          {m.charts && m.charts.map((c, cIdx) => (
+                          {message.charts?.map((chart, chartIndex) => (
                             <ChartRenderer
-                              key={cIdx}
-                              type={c.chart_type || "bar"}
-                              title={c.title || "Visual Analysis"}
+                              key={chartIndex}
+                              type={chart.chart_type || "bar"}
+                              title={chart.title || "Visual analysis"}
                               data={records}
-                              xKey={c.x_col || Object.keys(records[0] || {})[0]}
-                              yKey={c.y_col}
+                              xKey={chart.x_col || Object.keys(records[0] || {})[0]}
+                              yKey={chart.y_col}
                             />
                           ))}
-
-                          {/* Tool Call Trace Drawer */}
-                          {m.toolCalls && m.toolCalls.length > 0 && (
-                            <details className="text-xs font-mono text-slate-400 bg-slate-900/50 p-2.5 rounded-lg border border-white/5 cursor-pointer">
-                              <summary className="hover:text-cyan-300 select-none">
-                                🛠️ Inspect {m.toolCalls.length} Tool Execution Steps
-                              </summary>
-                              <div className="mt-2 space-y-2 pt-2 border-t border-white/5">
-                                {m.toolCalls.map((tc, tIdx) => (
-                                  <div key={tIdx} className="bg-slate-950 p-2 rounded">
-                                    <div className="text-cyan-400 font-semibold mb-1">
-                                      Step {tc.iteration}: {tc.tool}
-                                    </div>
-                                    <pre className="text-[11px] text-slate-300 overflow-x-auto">
-                                      {JSON.stringify(tc.args, null, 2)}
-                                    </pre>
+                          {message.toolCalls && message.toolCalls.length > 0 && (
+                            <details className="trace-details">
+                              <summary><Braces size={14} /> {message.toolCalls.length} analysis step{message.toolCalls.length > 1 ? "s" : ""}</summary>
+                              <div className="trace-list">
+                                {message.toolCalls.map((toolCall, toolIndex) => (
+                                  <div key={toolIndex}>
+                                    <strong>{toolCall.tool || `Step ${toolIndex + 1}`}</strong>
+                                    <pre>{JSON.stringify(toolCall.args, null, 2)}</pre>
                                   </div>
                                 ))}
                               </div>
                             </details>
                           )}
+                          {message.telemetry && message.role === "assistant" && (
+                            <div className="message-meta">
+                              {message.telemetry.total_inference_time_ms || 0} ms<span />
+                              {message.telemetry.total_tokens || 0} tokens<span />
+                              {message.telemetry.tokens_per_sec || 0} tok/s
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  ))
-                )}
-                {isLoading && (
-                  <div className="flex items-center gap-3 p-4 rounded-xl border border-cyan-500/20 bg-cyan-950/20 text-cyan-300 text-xs font-mono">
-                    <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
-                    <span>Groq LPU executing multi-turn tool calling and REPL sandbox reasoning...</span>
+                      </article>
+                    ))}
+                    {isLoading && (
+                      <article className="message assistant is-loading">
+                        <div className="message-avatar"><Bot size={17} /></div>
+                        <div className="message-body">
+                          <div className="message-label">DataMind</div>
+                          <div className="thinking-line"><span /><span /><span /> Working through the data</div>
+                        </div>
+                      </article>
+                    )}
                   </div>
-                )}
-              </div>
-
-              {/* Chat Input */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder={datasetName ? "Ask a question about your data..." : "Upload or load a dataset first..."}
-                  value={inputQuery}
-                  onChange={(e) => setInputQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && runChatQuery(inputQuery)}
-                  className="flex-1 bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 font-sans"
-                />
-                <button
-                  onClick={() => runChatQuery(inputQuery)}
-                  disabled={isLoading}
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-mono text-xs font-semibold tracking-wide disabled:opacity-50 transition-all flex items-center gap-1.5"
-                >
-                  <span>Run</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: AUTOMATED EDA PROFILER */}
-          {activeTab === "eda" && (
-            <div className="space-y-5">
-              {edaMetrics ? (
-                <>
-                  {/* KPI Health Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="p-3.5 rounded-xl bg-slate-900/70 border border-white/5">
-                      <div className="text-[11px] font-mono text-slate-400 uppercase">Records</div>
-                      <div className="text-xl font-mono font-bold text-white mt-1">{edaMetrics.nRows}</div>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-slate-900/70 border border-white/5">
-                      <div className="text-[11px] font-mono text-slate-400 uppercase">Dimensions</div>
-                      <div className="text-xl font-mono font-bold text-white mt-1">{edaMetrics.nCols}</div>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-slate-900/70 border border-white/5">
-                      <div className="text-[11px] font-mono text-slate-400 uppercase">Completeness</div>
-                      <div className="text-xl font-mono font-bold text-emerald-400 mt-1">{edaMetrics.completeness}%</div>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-slate-900/70 border border-white/5">
-                      <div className="text-[11px] font-mono text-slate-400 uppercase">Missing Cells</div>
-                      <div className="text-xl font-mono font-bold text-cyan-400 mt-1">{edaMetrics.totalNulls}</div>
-                    </div>
-                  </div>
-
-                  {/* Feature Visual Chart */}
-                  {edaMetrics.numericCols.length > 0 && (
-                    <ChartRenderer
-                      type="bar"
-                      title={`Distribution of Primary Feature: ${edaMetrics.numericCols[0]}`}
-                      data={records}
-                      xKey={edaMetrics.cols[0]}
-                      yKey={edaMetrics.numericCols[0]}
-                    />
-                  )}
-                </>
-              ) : (
-                <div className="p-12 text-center text-slate-400 font-mono text-xs">
-                  Load a dataset to generate automated EDA diagnostics.
                 </div>
               )}
-            </div>
-          )}
 
-          {/* TAB 3: DATA GRID */}
-          {activeTab === "explorer" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    placeholder="Search records across all fields..."
-                    value={searchFilter}
-                    onChange={(e) => setSearchFilter(e.target.value)}
-                    className="w-full bg-slate-900/70 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500/50"
+              <div className="composer-wrap">
+                <div className="composer">
+                  <textarea
+                    aria-label="Ask a question about your data"
+                    placeholder={datasetName ? "Ask anything about this dataset…" : "Load a dataset, then ask a question…"}
+                    value={inputQuery}
+                    onChange={(event) => setInputQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
+                        runChatQuery(inputQuery);
+                      }
+                    }}
+                    rows={1}
                   />
-                </div>
-                <div className="text-xs font-mono text-slate-400">
-                  Showing {Math.min(rowLimit, filteredRecords.length)} of {filteredRecords.length}
-                </div>
-              </div>
-
-              {/* Data Table */}
-              <div className="overflow-x-auto rounded-xl border border-white/10 bg-slate-950/60">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead className="bg-slate-900/80 text-cyan-400 border-b border-white/10">
-                    <tr>
-                      {records.length > 0 &&
-                        Object.keys(records[0]).map((col, idx) => (
-                          <th key={idx} className="p-3 font-semibold whitespace-nowrap">
-                            {col}
-                          </th>
-                        ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-slate-300">
-                    {filteredRecords.slice(0, rowLimit).map((row, rIdx) => (
-                      <tr key={rIdx} className="hover:bg-cyan-500/[0.03] transition-colors">
-                        {Object.values(row).map((val, cIdx) => (
-                          <td key={cIdx} className="p-3 whitespace-nowrap">
-                            {String(val ?? "")}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: CLEANING STUDIO */}
-          {activeTab === "clean" && (
-            <div className="p-6 rounded-2xl border border-white/[0.07] bg-[#0A0E1A] space-y-5">
-              <div className="font-mono text-sm font-semibold text-white flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-cyan-400" />
-                <span>One-Click Data Transformation Recipes</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl border border-white/5 bg-slate-900/50 space-y-3">
-                  <div className="text-xs font-mono font-semibold text-slate-200">1. Remove Duplicate Records</div>
-                  <div className="text-[11px] text-slate-400">Deduplicates all identical rows in-place.</div>
-                  <button
-                    onClick={() => {
-                      const seen = new Set();
-                      const cleaned = records.filter((el) => {
-                        const duplicate = seen.has(JSON.stringify(el));
-                        seen.add(JSON.stringify(el));
-                        return !duplicate;
-                      });
-                      setRecords(cleaned);
-                    }}
-                    className="px-3.5 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-xs font-mono transition-all"
-                  >
-                    Execute Deduplication
-                  </button>
-                </div>
-
-                <div className="p-4 rounded-xl border border-white/5 bg-slate-900/50 space-y-3">
-                  <div className="text-xs font-mono font-semibold text-slate-200">2. Drop Incomplete Rows</div>
-                  <div className="text-[11px] text-slate-400">Drops rows containing null or empty cells.</div>
-                  <button
-                    onClick={() => {
-                      const cleaned = records.filter((r) =>
-                        Object.values(r).every((v) => v !== null && v !== "" && v !== undefined)
-                      );
-                      setRecords(cleaned);
-                    }}
-                    className="px-3.5 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-xs font-mono transition-all"
-                  >
-                    Drop Rows With Nulls
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 5: EXECUTIVE REPORT */}
-          {activeTab === "report" && (
-            <div className="p-6 rounded-2xl border border-white/[0.07] bg-[#0A0E1A] space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="font-mono text-sm font-semibold text-white flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-cyan-400" />
-                  <span>Executive Intelligence Report</span>
-                </div>
-                <button
-                  onClick={generateReport}
-                  disabled={isGeneratingReport || records.length === 0}
-                  className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-semibold transition-all disabled:opacity-50"
-                >
-                  {isGeneratingReport ? "Compiling..." : "⚡ Generate Report"}
-                </button>
-              </div>
-
-              {reportMarkdown ? (
-                <div className="space-y-4">
-                  <div className="p-5 rounded-xl border border-white/10 bg-slate-950/80 font-mono text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
-                    {reportMarkdown}
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        const blob = new Blob([reportMarkdown], { type: "text/markdown" });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = "Executive_Report.md";
-                        a.click();
-                      }}
-                      className="px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-2"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download .md</span>
+                  <div className="composer-footer">
+                    <span>{datasetName ? `${records.length} rows in context` : "No dataset attached"}</span>
+                    <button onClick={() => runChatQuery(inputQuery)} disabled={!inputQuery.trim() || isLoading} aria-label="Send question">
+                      {isLoading ? <RefreshCw size={17} className="spin" /> : <ArrowUp size={18} />}
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="p-12 text-center text-slate-400 font-mono text-xs">
-                  Click "Generate Report" to synthesize an automated executive analytical briefing.
-                </div>
+                <p>DataMind can make mistakes. Verify high-impact decisions.</p>
+              </div>
+            </section>
+          )}
+
+          {activeTab === "eda" && (
+            <section className="view-enter">
+              {!edaMetrics ? <DataEmpty onLoad={loadDefault} /> : (
+                <>
+                  <div className="section-heading">
+                    <div>
+                      <span className="eyebrow">Automatic profile</span>
+                      <h2>The shape of your data</h2>
+                      <p>A quick structural read before you ask deeper questions.</p>
+                    </div>
+                    <div className="quality-badge"><span>{edaMetrics.completeness.toFixed(1)}%</span>data complete</div>
+                  </div>
+                  <div className="metric-grid">
+                    <article className="metric-card metric-card-primary"><span>Records</span><strong>{edaMetrics.rows.toLocaleString()}</strong><small>rows available for analysis</small></article>
+                    <article className="metric-card"><span>Fields</span><strong>{edaMetrics.columns.length}</strong><small>{edaMetrics.numericColumns.length} numeric features</small></article>
+                    <article className="metric-card"><span>Missing</span><strong>{edaMetrics.totalNulls}</strong><small>{edaMetrics.totalNulls ? "cells need attention" : "nothing missing"}</small></article>
+                    <article className="metric-card"><span>Duplicates</span><strong>{edaMetrics.duplicateCount}</strong><small>{edaMetrics.duplicateCount ? "safe to review" : "all rows unique"}</small></article>
+                  </div>
+                  <div className="overview-grid">
+                    <article className="panel profile-panel">
+                      <div className="panel-heading"><div><span className="eyebrow">Field health</span><h3>Completeness by column</h3></div><CircleGauge size={20} /></div>
+                      <div className="field-health-list">
+                        {edaMetrics.columns.slice(0, 8).map((column) => {
+                          const complete = 100 - (edaMetrics.nullsByColumn[column] / edaMetrics.rows) * 100;
+                          return (
+                            <div className="field-health-row" key={column}>
+                              <div><span>{column}</span><strong>{complete.toFixed(0)}%</strong></div>
+                              <div className="health-track"><span style={{ width: `${complete}%` }} /></div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </article>
+                    <article className="panel schema-panel">
+                      <div className="panel-heading"><div><span className="eyebrow">Schema</span><h3>What’s inside</h3></div><Database size={19} /></div>
+                      <div className="schema-chips">
+                        {edaMetrics.columns.map((column) => (
+                          <span key={column} className={edaMetrics.numericColumns.includes(column) ? "numeric" : "textual"}>
+                            {column}<small>{edaMetrics.numericColumns.includes(column) ? "123" : "abc"}</small>
+                          </span>
+                        ))}
+                      </div>
+                    </article>
+                  </div>
+                  {edaMetrics.numericColumns.length > 0 && (
+                    <ChartRenderer
+                      type="bar"
+                      title={`${edaMetrics.numericColumns[0]} at a glance`}
+                      data={records}
+                      xKey={edaMetrics.columns[0]}
+                      yKey={edaMetrics.numericColumns[0]}
+                    />
+                  )}
+                </>
               )}
-            </div>
+            </section>
+          )}
+
+          {activeTab === "explorer" && (
+            <section className="view-enter">
+              {!records.length ? <DataEmpty onLoad={loadDefault} /> : (
+                <>
+                  <div className="section-heading section-heading-compact">
+                    <div><span className="eyebrow">Raw records</span><h2>Look closely</h2></div>
+                    <button className="button button-outline" onClick={downloadCsv}><Download size={15} /> Export CSV</button>
+                  </div>
+                  <div className="table-toolbar">
+                    <label className="search-field">
+                      <Search size={16} />
+                      <input type="search" placeholder="Search every field…" value={searchFilter} onChange={(event) => setSearchFilter(event.target.value)} />
+                      {searchFilter && <button onClick={() => setSearchFilter("")} aria-label="Clear search"><X size={14} /></button>}
+                    </label>
+                    <div className="table-count">
+                      {filteredRecords.length.toLocaleString()} result{filteredRecords.length === 1 ? "" : "s"}
+                      <select value={rowLimit} onChange={(event) => setRowLimit(Number(event.target.value))} aria-label="Rows per page">
+                        <option value={10}>10 rows</option><option value={25}>25 rows</option><option value={50}>50 rows</option><option value={100}>100 rows</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="data-table-wrap">
+                    <table className="data-table">
+                      <thead><tr><th className="row-number">#</th>{Object.keys(records[0]).map((column) => <th key={column}>{column}</th>)}</tr></thead>
+                      <tbody>
+                        {filteredRecords.slice(0, rowLimit).map((row, rowIndex) => (
+                          <tr key={rowIndex}>
+                            <td className="row-number">{String(rowIndex + 1).padStart(2, "0")}</td>
+                            {Object.keys(records[0]).map((column) => <td key={column} title={String(row[column] ?? "")}>{String(row[column] ?? "—")}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {!filteredRecords.length && <div className="no-results">No records match “{searchFilter}”.</div>}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+
+          {activeTab === "clean" && (
+            <section className="view-enter">
+              {!edaMetrics ? <DataEmpty onLoad={loadDefault} /> : (
+                <>
+                  <div className="section-heading">
+                    <div><span className="eyebrow">Prepare the dataset</span><h2>Clean, with intent</h2><p>Small, transparent transformations. Your source file stays untouched.</p></div>
+                    {recordHistory.length > 0 && (
+                      <button className="button button-outline" onClick={undoLastClean}>
+                        <RefreshCw size={14} /> Undo last change
+                      </button>
+                    )}
+                  </div>
+                  {cleaningNotice && <div className="success-notice"><Check size={16} /> {cleaningNotice}</div>}
+                  <div className="recipe-grid">
+                    <article className="recipe-card">
+                      <div className="recipe-number">01</div><div className="recipe-icon coral"><Braces size={20} /></div>
+                      <h3>Remove duplicates</h3><p>Keep the first instance of repeated rows and discard exact copies.</p>
+                      <div className="recipe-stat"><strong>{edaMetrics.duplicateCount}</strong><span>duplicate rows found</span></div>
+                      <button
+                        className="button button-ink"
+                        disabled={!edaMetrics.duplicateCount}
+                        onClick={() => {
+                          const seen = new Set<string>();
+                          const cleaned = records.filter((row) => {
+                            const key = JSON.stringify(row);
+                            if (seen.has(key)) return false;
+                            seen.add(key);
+                            return true;
+                          });
+                          const removed = records.length - cleaned.length;
+                          commitCleanedRecords(cleaned, `${removed} duplicate row${removed === 1 ? "" : "s"} removed.`);
+                        }}
+                      >Remove duplicates <ArrowRight size={15} /></button>
+                    </article>
+                    <article className="recipe-card">
+                      <div className="recipe-number">02</div><div className="recipe-icon lime"><Wand2 size={20} /></div>
+                      <h3>Drop incomplete rows</h3><p>Remove any row containing a blank, null, or undefined value.</p>
+                      <div className="recipe-stat"><strong>{edaMetrics.totalNulls}</strong><span>missing cells found</span></div>
+                      <button
+                        className="button button-ink"
+                        disabled={!edaMetrics.totalNulls}
+                        onClick={() => {
+                          const cleaned = records.filter((row) => Object.values(row).every((value) => value !== null && value !== "" && value !== undefined));
+                          const removed = records.length - cleaned.length;
+                          commitCleanedRecords(cleaned, `${removed} incomplete row${removed === 1 ? "" : "s"} removed.`);
+                        }}
+                      >Drop incomplete rows <ArrowRight size={15} /></button>
+                    </article>
+                    <article className="recipe-card recipe-card-export">
+                      <div className="recipe-number">03</div><div className="recipe-icon blue"><Download size={20} /></div>
+                      <h3>Take it with you</h3><p>Download the current working copy as a clean, portable CSV.</p>
+                      <div className="recipe-stat"><strong>{records.length}</strong><span>rows ready to export</span></div>
+                      <button className="button button-lime" onClick={downloadCsv}>Download prepared CSV <Download size={15} /></button>
+                    </article>
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+
+          {activeTab === "report" && (
+            <section className="view-enter">
+              {!records.length ? <DataEmpty onLoad={loadDefault} /> : (
+                <>
+                  <div className="section-heading section-heading-compact">
+                    <div><span className="eyebrow">Decision-ready output</span><h2>The brief</h2><p>Turn the current dataset into an executive readout.</p></div>
+                    <button className="button button-lime" onClick={generateReport} disabled={isGeneratingReport}>
+                      {isGeneratingReport ? <><RefreshCw size={15} className="spin" /> Drafting</> : <><FileText size={15} /> Generate brief</>}
+                    </button>
+                  </div>
+                  {reportMarkdown ? (
+                    <article className="report-paper">
+                      <div className="report-paper-top">
+                        <div><span>DATAMIND / ANALYSIS BRIEF</span><strong>{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</strong></div>
+                        <button
+                          className="button button-outline"
+                          onClick={() => {
+                            const url = URL.createObjectURL(new Blob([reportMarkdown], { type: "text/markdown" }));
+                            const anchor = document.createElement("a");
+                            anchor.href = url;
+                            anchor.download = "datamind-analysis-brief.md";
+                            anchor.click();
+                            URL.revokeObjectURL(url);
+                          }}
+                        ><Download size={14} /> Download</button>
+                      </div>
+                      <div className="report-content">{reportMarkdown}</div>
+                    </article>
+                  ) : (
+                    <div className="report-placeholder">
+                      <div className="report-placeholder-art"><span /><span /><span /><span /></div>
+                      <h3>A one-page readout, written for decisions.</h3>
+                      <p>Generate a concise brief covering data health, key signals, and the next questions worth asking.</p>
+                      <button className="button button-ink" onClick={generateReport} disabled={isGeneratingReport}>Generate your first brief <ArrowRight size={15} /></button>
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
           )}
         </main>
       </div>
