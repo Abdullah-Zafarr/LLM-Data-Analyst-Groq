@@ -1,169 +1,199 @@
 """
-agent.py — Agentic orchestration loop for the Natural Language Data Analyst.
+agent.py — Agentic orchestration loop with self-correcting REPL and LPU telemetry.
 
-Implements the Groq tool calling loop:
-1. Send user message + tool schemas to Groq
-2. Check if model returns tool_calls
-3. Execute each tool call locally
-4. Append results to messages
-5. Loop until model returns a final text response (max 10 iterations)
+Features:
+1. Groq LPU tool calling with sub-second execution loop
+2. Self-correcting debug loop (tracks errors, repairs malformed code, records fix rate diff)
+3. Full telemetry instrumentation: Latency (ms), Tokens/sec, Token Breakdown, Execution Timers
+4. Dual Visualization support (Interactive Plotly + Publication Matplotlib)
 """
 
 import json
 import logging
 import os
+import time
 from groq import Groq
 from dotenv import load_dotenv
 
-from tools import load_dataset, run_query, create_chart, export_results, clean_data
+from tools import (
+    load_dataset,
+    run_query,
+    create_interactive_chart,
+    create_chart,
+    export_results,
+    clean_data,
+    get_data_profile,
+    generate_executive_report,
+)
 from tool_schemas import TOOL_SCHEMAS
 
 load_dotenv()
 
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Configuration
+# Defaults
 # ---------------------------------------------------------------------------
-MODEL = "llama-3.3-70b-versatile"
+DEFAULT_MODEL = "llama-3.3-70b-versatile"
 MAX_ITERATIONS = 10
-TEMPERATURE = 0.1  # Low temperature for precise analytical outputs
+TEMPERATURE = 0.1
 
-SYSTEM_PROMPT = """You are an expert data analyst AI assistant. You help users explore, analyze, and visualize datasets through natural language conversation.
+SYSTEM_PROMPT = """You are DataMind AI — an elite autonomous data analyst and quantitative intelligence assistant.
+You help users explore, analyze, and visualize datasets through natural language conversation.
 
-**Your workflow:**
-1. When a user uploads a dataset, use `load_dataset` to examine it first.
-2. Use `run_query` to perform data analysis by writing Pandas code. Always assign results to `result`.
-3. Use `create_chart` to create visualizations when asked. Use the `ax` object for plotting. You can use the `palette` argument for different styles (vibrant, corporate, pastel, sunset). Do NOT call `plt.show()`.
-4. Use `export_results` to save analysis results as CSV files when requested.
-5. Use `clean_data` to handle missing values, drop columns, or fix data quality issues.
+**Your Toolkit:**
+1. `load_dataset`: Inspect uploaded datasets (CSV, Excel, TSV). Call this first if no dataset is loaded.
+2. `run_query`: Execute sandboxed Pandas code. Assign your final answer to `result`.
+3. `create_interactive_chart`: Generate interactive Plotly charts with hover tooltips, zoom, and rich aesthetics. Assign the figure to `fig`. Preferred for UI visualizations.
+4. `create_chart`: Generate publication-grade Matplotlib charts saved as PNG images.
+5. `export_results`: Save analysis or filtered slices to CSV files.
+6. `clean_data`: Perform dataset cleaning (impute, drop nulls, deduplicate, filter outliers).
+7. `get_data_profile`: Obtain an automated statistical profile with distributions, correlations, and skewness.
+8. `generate_executive_report`: Compile a full analytical executive summary report.
 
-**Rules:**
-- Always load the dataset before querying or charting.
-- Write clean, efficient Pandas code.
-- When creating charts, use colors from the `colors` list provided in the environment.
-- Explain your analysis results clearly after using tools.
-- If a query fails, explain the error and try a different approach.
-- For numeric analysis, round values to 2 decimal places.
-- When grouping data, use meaningful aggregations (mean, sum, count as appropriate).
+**Operational Guidelines:**
+- For visualizations, prefer `create_interactive_chart` using Plotly Express (`px`) so users can interact with the charts.
+- Write clean, vectorized Pandas code.
+- If a query fails or raises an error, carefully diagnose the traceback and immediately self-correct your code.
+- Provide crisp, data-driven analytical takeaways after running tools. Highlight key metrics with bold numbers.
 """
 
-# ---------------------------------------------------------------------------
-# Function registry — maps tool names to implementations
-# ---------------------------------------------------------------------------
 AVAILABLE_FUNCTIONS = {
     "load_dataset": load_dataset,
     "run_query": run_query,
+    "create_interactive_chart": create_interactive_chart,
     "create_chart": create_chart,
     "export_results": export_results,
     "clean_data": clean_data,
+    "get_data_profile": get_data_profile,
+    "generate_executive_report": generate_executive_report,
 }
 
 
-# ---------------------------------------------------------------------------
-# Core agent loop
-# ---------------------------------------------------------------------------
-def run_agent(user_message: str, messages: list | None = None, dataset_path: str | None = None) -> dict:
+def run_agent(
+    user_message: str,
+    messages: list | None = None,
+    dataset_path: str | None = None,
+    model: str = DEFAULT_MODEL,
+) -> dict:
     """
-    Run the agentic tool calling loop.
-
-    Args:
-        user_message: The user's natural language question.
-        messages: Existing conversation history (list of message dicts).
-                  If None, starts a fresh conversation.
-        dataset_path: Optional path to auto-load a dataset.
-
-    Returns:
-        dict with keys:
-            - "response": The final assistant text response
-            - "messages": Updated conversation history
-            - "charts": List of chart file paths generated
-            - "exports": List of exported file paths
-            - "tool_calls_log": List of tool calls made (for UI display)
+    Run the agentic tool calling loop with self-correcting REPL and Groq LPU telemetry.
     """
-    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return {
+            "response": "Groq API key not found. Please add GROQ_API_KEY to your .env file.",
+            "messages": messages or [],
+            "charts": [],
+            "interactive_charts": [],
+            "exports": [],
+            "tool_calls_log": [],
+            "telemetry": {},
+        }
 
-    # Initialize conversation
+    client = Groq(api_key=api_key)
+
     if messages is None:
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
-    # If a dataset path is provided and it's the first load, inject context
     if dataset_path:
-        context = f"\n[System: The user has uploaded a dataset at path '{dataset_path}'. Load it before answering questions about it.]"
+        context = f"\n[System: Active dataset path is '{dataset_path}'.]"
         user_message_with_context = user_message + context
     else:
         user_message_with_context = user_message
 
     messages.append({"role": "user", "content": user_message_with_context})
 
-    # Track artifacts generated
     charts = []
+    interactive_charts = []
     exports = []
     tool_calls_log = []
+    self_corrections = []
 
-    # ---------------------------------------------------------------------------
-    # Agentic loop
-    # ---------------------------------------------------------------------------
+    total_prompt_tokens = 0
+    total_completion_tokens = 0
+    total_inference_time = 0.0
+
+    # Pending error tracking for self-correction diffs
+    last_failed_call: dict | None = None
+
     iteration = 0
     while iteration < MAX_ITERATIONS:
         iteration += 1
-        logger.debug("Agent loop iteration %d/%d", iteration, MAX_ITERATIONS)
+        t_start = time.perf_counter()
 
-        # Call Groq with tool schemas
         try:
             response = client.chat.completions.create(
-                model=MODEL,
+                model=model,
                 messages=messages,
                 tools=TOOL_SCHEMAS,
                 tool_choice="auto",
                 temperature=TEMPERATURE,
                 max_tokens=4096,
             )
+            t_call = time.perf_counter() - t_start
+            total_inference_time += t_call
+
+            if response.usage:
+                total_prompt_tokens += response.usage.prompt_tokens or 0
+                total_completion_tokens += response.usage.completion_tokens or 0
+
         except Exception as api_err:
             err_str = str(api_err)
-            # Groq returns tool_use_failed when the LLM generates malformed tool JSON
             if "tool_use_failed" in err_str:
-                logger.warning("Malformed tool call from LLM, asking for retry (iteration %d)", iteration)
                 messages.append({
                     "role": "user",
-                    "content": "[System: Your previous tool call was malformed. Please try again with valid arguments, or respond directly without using tools.]",
+                    "content": "[System: Your tool call was malformed. Please fix the arguments and retry.]",
                 })
                 continue
-            # Other API errors — return gracefully
+
             logger.error("Groq API error: %s", err_str)
             return {
-                "response": f"API error: {err_str}",
+                "response": f"Groq API error: {err_str}",
                 "messages": messages,
                 "charts": charts,
+                "interactive_charts": interactive_charts,
                 "exports": exports,
                 "tool_calls_log": tool_calls_log,
+                "telemetry": {
+                    "model": model,
+                    "total_inference_time_ms": round(total_inference_time * 1000, 1),
+                    "total_tokens": total_prompt_tokens + total_completion_tokens,
+                    "self_corrections": self_corrections,
+                },
             }
 
         response_message = response.choices[0].message
         tool_calls = response_message.tool_calls
 
-        # If no tool calls, we have our final response
         if not tool_calls:
-            # Append the final assistant message
-            messages.append({
-                "role": "assistant",
-                "content": response_message.content or ""
-            })
+            messages.append({"role": "assistant", "content": response_message.content or ""})
+            tokens_per_sec = (
+                round(total_completion_tokens / total_inference_time, 1)
+                if total_inference_time > 0
+                else 0.0
+            )
             return {
                 "response": response_message.content or "",
                 "messages": messages,
                 "charts": charts,
+                "interactive_charts": interactive_charts,
                 "exports": exports,
                 "tool_calls_log": tool_calls_log,
+                "telemetry": {
+                    "model": model,
+                    "total_inference_time_ms": round(total_inference_time * 1000, 1),
+                    "tokens_per_sec": tokens_per_sec,
+                    "prompt_tokens": total_prompt_tokens,
+                    "completion_tokens": total_completion_tokens,
+                    "total_tokens": total_prompt_tokens + total_completion_tokens,
+                    "iterations": iteration,
+                    "self_corrections": self_corrections,
+                },
             }
 
-        # Append assistant message with tool calls
         messages.append(response_message)
 
-        # Execute each tool call
         for tool_call in tool_calls:
             function_name = tool_call.function.name
             try:
@@ -171,42 +201,63 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
             except json.JSONDecodeError:
                 function_args = {}
 
-            logger.info("Calling tool '%s' with args: %s", function_name, function_args)
-
-            # Log the tool call
             log_entry = {
                 "tool": function_name,
                 "args": function_args,
                 "iteration": iteration,
             }
 
-            # Execute the function
             if function_name in AVAILABLE_FUNCTIONS:
-                function_to_call = AVAILABLE_FUNCTIONS[function_name]
+                fn = AVAILABLE_FUNCTIONS[function_name]
                 try:
-                    function_response = function_to_call(**function_args)
+                    function_response = fn(**function_args)
                 except TypeError as e:
-                    function_response = json.dumps({"error": f"Invalid arguments: {str(e)}"})
+                    function_response = json.dumps({"status": "error", "error": f"Invalid arguments: {str(e)}"})
                 except Exception as e:
-                    logger.exception("Tool '%s' raised an exception", function_name)
-                    function_response = json.dumps({"error": f"Tool execution error: {str(e)}"})
+                    function_response = json.dumps({"status": "error", "error": f"Execution error: {str(e)}"})
             else:
-                function_response = json.dumps({"error": f"Unknown tool: {function_name}"})
+                function_response = json.dumps({"status": "error", "error": f"Unknown tool: {function_name}"})
 
             log_entry["result"] = function_response
             tool_calls_log.append(log_entry)
 
-            # Track generated artifacts
+            # Inspect result for self-correction tracking & artifacts
             try:
-                result_data = json.loads(function_response)
-                if "chart_path" in result_data:
-                    charts.append(result_data["chart_path"])
-                if "filepath" in result_data:
-                    exports.append(result_data["filepath"])
+                parsed = json.loads(function_response)
+                is_error = parsed.get("status") == "error" or "error" in parsed
+
+                if is_error:
+                    last_failed_call = {
+                        "tool": function_name,
+                        "code": function_args.get("code", ""),
+                        "error": parsed.get("error", "Unknown error"),
+                        "iteration": iteration,
+                    }
+                else:
+                    # If this succeeded and we previously had an error on this tool, record self-correction!
+                    if last_failed_call and last_failed_call["tool"] == function_name:
+                        self_corrections.append({
+                            "tool": function_name,
+                            "error": last_failed_call["error"],
+                            "failed_code": last_failed_call["code"],
+                            "repaired_code": function_args.get("code", ""),
+                            "resolved_at_iteration": iteration,
+                        })
+                        last_failed_call = None
+
+                    if "chart_path" in parsed:
+                        charts.append(parsed["chart_path"])
+                    if "figure_json" in parsed:
+                        interactive_charts.append({
+                            "title": parsed.get("title", "Interactive Visual"),
+                            "figure_json": parsed["figure_json"],
+                        })
+                    if "filepath" in parsed:
+                        exports.append(parsed["filepath"])
+
             except (json.JSONDecodeError, TypeError):
                 pass
 
-            # Append tool result to messages
             messages.append({
                 "tool_call_id": tool_call.id,
                 "role": "tool",
@@ -214,14 +265,28 @@ def run_agent(user_message: str, messages: list | None = None, dataset_path: str
                 "content": function_response,
             })
 
-    # If we hit max iterations, return what we have
-    logger.warning("Agent hit MAX_ITERATIONS (%d) — returning partial results", MAX_ITERATIONS)
-    final_msg = "I've reached the maximum number of analysis steps. Here's what I found so far."
+    final_msg = "Analysis limit reached (10 iterations). Here are the compiled insights."
     messages.append({"role": "assistant", "content": final_msg})
+    tokens_per_sec = (
+        round(total_completion_tokens / total_inference_time, 1)
+        if total_inference_time > 0
+        else 0.0
+    )
     return {
         "response": final_msg,
         "messages": messages,
         "charts": charts,
+        "interactive_charts": interactive_charts,
         "exports": exports,
         "tool_calls_log": tool_calls_log,
+        "telemetry": {
+            "model": model,
+            "total_inference_time_ms": round(total_inference_time * 1000, 1),
+            "tokens_per_sec": tokens_per_sec,
+            "prompt_tokens": total_prompt_tokens,
+            "completion_tokens": total_completion_tokens,
+            "total_tokens": total_prompt_tokens + total_completion_tokens,
+            "iterations": iteration,
+            "self_corrections": self_corrections,
+        },
     }
