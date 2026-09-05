@@ -1,0 +1,31 @@
+PatientID,Age,Gender,Cohort,BiomarkerBaseline,BiomarkerPostTreatment,AdverseEvents,RecoveryDays,EfficacyScore,Status
+PT-201,45,Female,Treatment A,182.4,94.2,0,14,92.5,Resolved
+PT-202,62,Male,Treatment A,210.8,112.5,1,19,84.0,Resolved
+PT-203,54,Female,Control,175.1,168.9,0,38,32.4,Active
+PT-204,39,Male,Treatment B,198.3,88.7,0,12,95.1,Resolved
+PT-205,71,Female,Control,245.0,239.2,2,45,18.9,Active
+PT-206,58,Male,Treatment A,189.6,98.1,0,16,89.3,Resolved
+PT-207,49,Female,Treatment B,204.2,91.0,1,15,91.8,Resolved
+PT-208,67,Male,Control,220.5,214.0,1,42,24.6,Active
+PT-209,42,Female,Treatment A,168.9,82.4,0,11,96.2,Resolved
+PT-210,51,Male,Treatment B,195.0,85.6,0,13,94.0,Resolved
+PT-211,63,Female,Control,231.4,228.1,3,50,15.2,Active
+PT-212,38,Male,Treatment A,177.2,89.3,0,12,93.7,Resolved
+PT-213,74,Female,Treatment B,250.6,120.4,2,22,81.5,Resolved
+PT-214,56,Male,Control,192.8,188.5,1,36,29.0,Active
+PT-215,48,Female,Treatment A,184.1,92.0,0,14,91.4,Resolved
+PT-216,61,Male,Treatment B,215.3,99.8,1,18,88.2,Resolved
+PT-217,53,Female,Control,180.7,175.2,0,34,35.1,Active
+PT-218,46,Male,Treatment A,179.5,86.2,0,13,94.8,Resolved
+PT-219,69,Female,Treatment B,238.9,114.6,1,20,85.0,Resolved
+PT-220,59,Male,Control,208.4,202.9,2,40,22.8,Active
+PT-221,41,Female,Treatment A,165.2,79.8,0,10,97.5,Resolved
+PT-222,65,Male,Treatment B,224.7,105.1,1,19,86.4,Resolved
+PT-223,50,Female,Control,186.3,181.0,0,35,31.2,Active
+PT-224,37,Male,Treatment A,172.0,84.5,0,11,95.3,Resolved
+PT-225,72,Female,Treatment B,242.1,118.0,2,21,82.9,Resolved
+PT-226,55,Male,Control,199.5,194.2,1,39,26.5,Active
+PT-227,47,Female,Treatment A,181.8,90.5,0,13,92.1,Resolved
+PT-228,64,Male,Treatment B,219.0,102.3,1,17,87.6,Resolved
+PT-229,52,Female,Control,178.4,172.9,0,33,36.4,Active
+PT-230,44,Male,Treatment A,176.1,85.0,0,12,94.2,Resolved
