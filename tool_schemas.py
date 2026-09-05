@@ -1,9 +1,7 @@
 """
-tool_schemas.py — Groq tool JSON schemas for the Natural Language Data Analyst.
+tool_schemas.py — Groq tool JSON schemas for DataMind AI.
 
-These schemas tell the LLM what tools are available, what they do,
-and what parameters they accept. The model uses these to decide
-which tools to call and with what arguments.
+Definitions for all callable tools exposed to Groq LLM tool calling.
 """
 
 TOOL_SCHEMAS = [
@@ -13,19 +11,15 @@ TOOL_SCHEMAS = [
             "name": "load_dataset",
             "description": (
                 "Load a CSV or Excel file into memory for analysis. "
-                "Returns a summary including column names, data types, shape, "
-                "and the first 5 rows of data. Always call this first before "
-                "running queries or creating charts."
+                "Returns a detailed summary including columns, data types, row counts, "
+                "missing values, and sample data. Call this first if no dataset is loaded."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "filename": {
                         "type": "string",
-                        "description": (
-                            "The file path of the CSV or Excel file to load. "
-                            "Example: 'sample_data/sales_data.csv'"
-                        ),
+                        "description": "Path to the CSV/Excel file, e.g. 'sample_data/sales_data.csv'",
                     }
                 },
                 "required": ["filename"],
@@ -37,14 +31,13 @@ TOOL_SCHEMAS = [
         "function": {
             "name": "run_query",
             "description": (
-                "Execute a Pandas query or operation on the loaded dataset. "
-                "The code should reference the DataFrame as 'df'. "
-                "You MUST assign the final result to a variable named 'result'. "
+                "Execute Python/Pandas code in a sandboxed execution container. "
+                "The DataFrame is available as 'df'. 'pd' and 'np' are pre-imported. "
+                "Assign the primary result to variable 'result'.\n"
                 "Examples:\n"
-                "  result = df.groupby('Region')['Revenue'].mean()\n"
-                "  result = df[df['Revenue'] > 1000]\n"
+                "  result = df.groupby('Region')['Revenue'].sum().reset_index()\n"
+                "  result = df[df['MonthlyCharges'] > 75].sort_values('TenureMonths', ascending=False)\n"
                 "  result = df.describe()\n"
-                "  result = df['Revenue'].sum()\n"
                 "  result = df.corr(numeric_only=True)"
             ),
             "parameters": {
@@ -52,12 +45,7 @@ TOOL_SCHEMAS = [
                 "properties": {
                     "code": {
                         "type": "string",
-                        "description": (
-                            "Python code using Pandas to query the dataset. "
-                            "The DataFrame is available as 'df'. "
-                            "pandas is available as 'pd' and numpy as 'np'. "
-                            "Always assign the final answer to 'result'."
-                        ),
+                        "description": "Python Pandas code to execute. Always assign final output to 'result'.",
                     }
                 },
                 "required": ["code"],
@@ -67,37 +55,56 @@ TOOL_SCHEMAS = [
     {
         "type": "function",
         "function": {
-            "name": "create_chart",
+            "name": "create_interactive_chart",
             "description": (
-                "Generate a Matplotlib chart from the loaded dataset and save it as a PNG image. "
-                "The code should reference the DataFrame as 'df' and use 'ax' for plotting "
-                "(a pre-configured matplotlib axes object). "
-                "Do NOT call plt.show(). The chart will be saved automatically. "
+                "Generate a rich, interactive Plotly visualization with hover tooltips, zoom, and panning. "
+                "The code MUST assign the Plotly figure to a variable named 'fig'. "
+                "Plotly Express is available as 'px' and Graph Objects as 'go'. 'df' is the DataFrame.\n"
                 "Examples:\n"
-                "  df.groupby('Region')['Revenue'].mean().plot(kind='bar', ax=ax, color='#00d4ff')\n"
-                "  ax.scatter(df['Units'], df['Revenue'], color='#ff6b6b', alpha=0.7)\n"
-                "  df['Category'].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')"
+                "  fig = px.bar(df, x='Region', y='Revenue', color='Category', title='Revenue by Region', barmode='group')\n"
+                "  fig = px.scatter(df, x='MonthlyCharges', y='TotalCharges', color='Churn', hover_data=['CustomerID'])\n"
+                "  fig = px.pie(df, names='ContractType', values='MonthlyCharges', title='Revenue by Contract')"
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "code": {
                         "type": "string",
-                        "description": (
-                            "Python code using matplotlib to create the chart. "
-                            "Use 'ax' for the axes object and 'df' for the data. "
-                            "'plt', 'pd', and 'np' are also available. "
-                            "Do NOT call plt.show()."
-                        ),
+                        "description": "Python code using 'px' or 'go' to create the figure. Must assign to 'fig'.",
                     },
                     "title": {
                         "type": "string",
-                        "description": "The title for the chart.",
+                        "description": "Title for the interactive chart.",
+                    },
+                },
+                "required": ["code", "title"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_chart",
+            "description": (
+                "Generate a high-resolution static Matplotlib chart saved to disk as a PNG image. "
+                "Use 'ax' for the pre-configured axes object and 'df' for the data. "
+                "Do NOT call plt.show(). 'colors' list is available."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "Python Matplotlib code. Plot onto axes 'ax'. Do NOT call plt.show().",
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Title of the chart.",
                     },
                     "palette": {
                         "type": "string",
-                        "enum": ["vibrant", "corporate", "pastel", "sunset"],
-                        "description": "The color theme for the chart. Default: 'vibrant'.",
+                        "enum": ["vibrant", "corporate", "neon", "sunset"],
+                        "description": "Color palette theme.",
                     },
                 },
                 "required": ["code", "title"],
@@ -108,32 +115,17 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "export_results",
-            "description": (
-                "Export query results or a filtered dataset to a CSV file for download. "
-                "The 'data' parameter should be a valid Python expression that uses 'df' "
-                "(the loaded DataFrame). "
-                "Examples:\n"
-                "  df.groupby('Region')['Revenue'].sum().reset_index()\n"
-                "  df[df['Revenue'] > 5000]\n"
-                "  df.describe()"
-            ),
+            "description": "Export query results or filtered datasets to a CSV file for download.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "data": {
                         "type": "string",
-                        "description": (
-                            "A Python expression that evaluates to a DataFrame or Series "
-                            "using the loaded dataset 'df'. "
-                            "Example: \"df.groupby('Region')['Revenue'].mean().reset_index()\""
-                        ),
+                        "description": "Python expression evaluating to a DataFrame or Series using 'df'.",
                     },
                     "filename": {
                         "type": "string",
-                        "description": (
-                            "The output filename for the exported CSV. "
-                            "Default: 'export.csv'. Example: 'revenue_by_region.csv'"
-                        ),
+                        "description": "Target CSV filename (e.g. 'high_risk_churn.csv').",
                     },
                 },
                 "required": ["data"],
@@ -144,31 +136,53 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "clean_data",
-            "description": (
-                "Clean the loaded dataset by dropping/filling missing values, dropping columns, or renaming them. "
-                "Operations: 'drop_na', 'fill_na', 'drop_cols', 'rename_cols'."
-            ),
+            "description": "Perform data transformation/cleaning operations on the active dataset.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "operation": {
                         "type": "string",
-                        "enum": ["drop_na", "fill_na", "drop_cols", "rename_cols"],
+                        "enum": ["drop_na", "fill_na", "drop_cols", "rename_cols", "drop_duplicates", "filter_outliers"],
+                        "description": "Cleaning transformation to apply.",
                     },
                     "columns": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of column names to apply the operation to.",
+                        "description": "List of columns affected by this operation.",
                     },
                     "value": {
                         "type": "string",
-                        "description": (
-                            "For 'fill_na': specify the value (or 'mean', 'median'). "
-                            "For 'rename_cols': specify a JSON dict string like '{\"old\":\"new\"}'."
-                        ),
-                    }
+                        "description": "Fill value or JSON mapping string for column renaming.",
+                    },
                 },
                 "required": ["operation"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_data_profile",
+            "description": "Compute an automated statistical health profile, distribution metrics, and correlations for the active dataset.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_executive_report",
+            "description": "Generate a structured Executive Data Intelligence Report summarizing findings and strategic recommendations.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Report title header.",
+                    }
+                },
             },
         },
     },
