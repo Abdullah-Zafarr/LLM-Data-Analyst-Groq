@@ -14,10 +14,8 @@ import {
   CircleGauge,
   Database,
   Download,
-  ExternalLink,
   FileSpreadsheet,
   FileText,
-  KeyRound,
   Menu,
   MessageSquareText,
   RefreshCw,
@@ -144,10 +142,6 @@ export default function DataMindWorkspace() {
     if (savedKey) setApiKey(savedKey);
   }, []);
 
-  const handleApiKeyChange = (value: string) => {
-    setApiKey(value);
-    localStorage.setItem("datamind_groq_key", value);
-  };
 
   const parseAndLoadCsv = (csvString: string, name: string) => {
     Papa.parse(csvString, {
@@ -371,7 +365,10 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
       <aside className={`workspace-sidebar ${mobileMenuOpen ? "is-open" : ""}`}>
         <div className="sidebar-topline">
           <a className="wordmark" href="#" aria-label="DataMind home">
-            <span className="wordmark-mark">D</span><span>DataMind</span>
+            <span className="wordmark-mark">
+              <img src="/assets/logo.png" alt="Logo" className="wordmark-logo-img" />
+            </span>
+            <span>DataMind</span>
           </a>
           <button className="icon-button mobile-only" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
             <X size={18} />
@@ -445,27 +442,11 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
               <option value="llama-3.3-70b-versatile">Llama 3.3 70B · deep</option>
               <option value="llama-3.1-8b-instant">Llama 3.1 8B · fast</option>
             </select>
-            <div className="field-row">
-              <label className="field-label" htmlFor="api-key">Groq API key</label>
-              <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer">Get one <ExternalLink size={11} /></a>
-            </div>
-            <div className="key-field">
-              <KeyRound size={14} />
-              <input
-                id="api-key"
-                type="password"
-                placeholder="gsk_••••••••"
-                value={apiKey}
-                onChange={(event) => handleApiKeyChange(event.target.value)}
-                autoComplete="off"
-              />
-              {apiKey && <Check size={14} className="key-check" />}
-            </div>
           </section>
         </div>
 
         <div className="sidebar-footer">
-          <span className="status-dot" /><span>Analysis engine ready</span><span className="sidebar-version">v1.0</span>
+          <span className="sidebar-version">v1.0</span>
         </div>
       </aside>
 
@@ -483,7 +464,6 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
           <div className="telemetry-strip">
             <div><span>Engine</span><strong>{model.includes("70b") ? "70B Deep" : "8B Fast"}</strong></div>
             <div><span>Latency</span><strong>{telemetry.total_inference_time_ms || "—"}{telemetry.total_inference_time_ms ? " ms" : ""}</strong></div>
-            <div className="telemetry-live"><span className="status-dot" /> Live</div>
           </div>
         </header>
 
