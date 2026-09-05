@@ -1,0 +1,41 @@
+CustomerID,TenureMonths,ContractType,MonthlyCharges,TotalCharges,SupportTickets,PaymentMethod,TechSupport,PaperlessBilling,NPS_Score,Churn
+CUST-1001,1,Month-to-Month,78.50,78.50,4,Electronic Check,No,Yes,3,Yes
+CUST-1002,34,One Year,56.95,1936.30,1,Mailed Check,Yes,No,8,No
+CUST-1003,2,Month-to-Month,53.85,107.70,3,Mailed Check,No,Yes,4,Yes
+CUST-1004,45,One Year,42.30,1903.50,0,Bank Transfer,Yes,No,9,No
+CUST-1005,8,Month-to-Month,70.70,565.60,5,Electronic Check,No,Yes,2,Yes
+CUST-1006,22,Month-to-Month,89.10,1960.20,2,Credit Card,No,Yes,6,Yes
+CUST-1007,60,Two Year,105.65,6339.00,0,Bank Transfer,Yes,No,10,No
+CUST-1008,12,Month-to-Month,20.75,249.00,1,Mailed Check,No,No,7,No
+CUST-1009,30,One Year,64.80,1944.00,1,Bank Transfer,Yes,Yes,8,No
+CUST-1010,4,Month-to-Month,95.45,381.80,6,Electronic Check,No,Yes,1,Yes
+CUST-1011,58,Two Year,24.95,1447.10,0,Credit Card,Yes,No,9,No
+CUST-1012,16,Month-to-Month,74.40,1190.40,2,Credit Card,No,Yes,5,No
+CUST-1013,64,Two Year,111.30,7123.20,1,Bank Transfer,Yes,Yes,9,No
+CUST-1014,3,Month-to-Month,80.85,242.55,4,Electronic Check,No,Yes,3,Yes
+CUST-1015,38,One Year,69.90,2656.20,0,Credit Card,Yes,No,8,No
+CUST-1016,9,Month-to-Month,45.20,406.80,2,Mailed Check,No,Yes,6,No
+CUST-1017,70,Two Year,115.65,8095.50,0,Bank Transfer,Yes,Yes,10,No
+CUST-1018,5,Month-to-Month,85.10,425.50,5,Electronic Check,No,Yes,2,Yes
+CUST-1019,27,One Year,50.35,1359.45,1,Mailed Check,Yes,No,7,No
+CUST-1020,72,Two Year,118.75,8550.00,0,Credit Card,Yes,Yes,10,No
+CUST-1021,6,Month-to-Month,99.65,597.90,4,Electronic Check,No,Yes,3,Yes
+CUST-1022,48,Two Year,85.20,4089.60,1,Bank Transfer,Yes,No,8,No
+CUST-1023,15,Month-to-Month,60.15,902.25,2,Mailed Check,No,Yes,6,No
+CUST-1024,52,Two Year,102.50,5330.00,0,Credit Card,Yes,Yes,9,No
+CUST-1025,1,Month-to-Month,69.95,69.95,3,Electronic Check,No,Yes,4,Yes
+CUST-1026,36,One Year,78.40,2822.40,1,Bank Transfer,Yes,No,8,No
+CUST-1027,7,Month-to-Month,92.10,644.70,5,Electronic Check,No,Yes,2,Yes
+CUST-1028,66,Two Year,108.90,7187.40,0,Credit Card,Yes,Yes,9,No
+CUST-1029,19,Month-to-Month,55.70,1058.30,1,Mailed Check,No,No,7,No
+CUST-1030,24,One Year,80.25,1926.00,2,Credit Card,Yes,Yes,7,No
+CUST-1031,2,Month-to-Month,84.60,169.20,4,Electronic Check,No,Yes,3,Yes
+CUST-1032,55,Two Year,90.45,4974.75,0,Bank Transfer,Yes,No,9,No
+CUST-1033,11,Month-to-Month,71.30,784.30,3,Electronic Check,No,Yes,5,Yes
+CUST-1034,40,One Year,65.20,2608.00,1,Credit Card,Yes,No,8,No
+CUST-1035,14,Month-to-Month,49.80,697.20,2,Mailed Check,No,Yes,6,No
+CUST-1036,68,Two Year,114.20,7765.60,0,Bank Transfer,Yes,Yes,10,No
+CUST-1037,8,Month-to-Month,96.35,770.80,4,Electronic Check,No,Yes,3,Yes
+CUST-1038,32,One Year,58.70,1878.40,1,Mailed Check,Yes,No,7,No
+CUST-1039,5,Month-to-Month,75.10,375.50,3,Electronic Check,No,Yes,4,Yes
+CUST-1040,61,Two Year,104.80,6392.80,0,Credit Card,Yes,Yes,9,No
