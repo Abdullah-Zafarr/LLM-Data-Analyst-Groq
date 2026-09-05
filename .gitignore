@@ -30,3 +30,8 @@ desktop.ini
 # Testing / type checking
 .pytest_cache/
 .mypy_cache/
+# Node & Next.js
+node_modules/
+.next/
+.vercel
+
