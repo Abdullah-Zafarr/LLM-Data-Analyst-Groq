@@ -11,6 +11,8 @@ DataMind is a conversational data workspace that turns a CSV into an explorable 
 ![Groq](https://img.shields.io/badge/Groq_LPU-151b2b?style=flat-square&logoColor=ff6b4a)
 ![Vercel](https://img.shields.io/badge/Deployed_on_Vercel-151b2b?style=flat-square&logo=vercel&logoColor=white)
 
+![DataMind workbench with file import, example datasets, and a retail sales preview](public/assets/user%20interface%20for%20readme.png)
+
 ## Why DataMind
 
 Most "chat with your CSV" demos stop at a message box. DataMind treats analysis as a full workflow:
