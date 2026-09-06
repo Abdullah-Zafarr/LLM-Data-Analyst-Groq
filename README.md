@@ -4,13 +4,6 @@
 
 DataMind is a conversational data workspace that turns a CSV into an explorable analysis desk. Ask questions in plain language, inspect the dataset's structure, search raw records, prepare a clean working copy, and turn findings into a concise decision brief.
 
-[Live demo](https://llm-data-analyst-groq.vercel.app) | [Report an issue](https://github.com/Abdullah-Zafarr/LLM-Data-Analyst-Groq/issues)
-
-![Next.js](https://img.shields.io/badge/Next.js_15-151b2b?style=flat-square&logo=next.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-151b2b?style=flat-square&logo=typescript&logoColor=90b7ff)
-![Groq](https://img.shields.io/badge/Groq_LPU-151b2b?style=flat-square&logoColor=ff6b4a)
-![Vercel](https://img.shields.io/badge/Deployed_on_Vercel-151b2b?style=flat-square&logo=vercel&logoColor=white)
-
 ![DataMind workbench with file import, example datasets, and a retail sales preview](public/assets/user%20interface%20for%20readme.png)
 
 ## Why DataMind
