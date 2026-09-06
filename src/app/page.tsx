@@ -92,7 +92,7 @@ interface Message {
 }
 
 const TABS: { id: TabId; label: string; shortLabel: string; icon: React.ElementType }[] = [
-  { id: "copilot", label: "Ask DataMind", shortLabel: "Ask", icon: MessageSquareText },
+  { id: "copilot", label: "Analysis", shortLabel: "Ask", icon: MessageSquareText },
   { id: "eda", label: "Overview", shortLabel: "Overview", icon: BarChart3 },
   { id: "explorer", label: "Records", shortLabel: "Records", icon: Table2 },
   { id: "clean", label: "Prepare", shortLabel: "Prepare", icon: Wand2 },
@@ -105,12 +105,20 @@ const DATASETS = [
   { name: "Clinical trials", description: "15 patients · efficacy outcomes", accent: "#90b7ff", load: SAMPLE_CLINICAL_CSV, file: "clinical_trials.csv" },
 ];
 
+const SALES_PREVIEW = Object.entries(
+  Papa.parse<Record<string, any>>(SAMPLE_SALES_CSV, { header: true, dynamicTyping: true }).data.reduce<Record<string, number>>((totals, row) => {
+    totals[row.Region] = (totals[row.Region] || 0) + row.Revenue;
+    return totals;
+  }, {})
+).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+const SALES_TOTAL = SALES_PREVIEW.reduce((total, region) => total + region.value, 0);
+
 function DataEmpty({ onLoad }: { onLoad: () => void }) {
   return (
     <div className="empty-state">
       <div className="empty-state-icon"><FileSpreadsheet size={24} strokeWidth={1.7} /></div>
-      <h2>There’s no dataset on the desk yet.</h2>
-      <p>Bring in a CSV or start with a sample to unlock this view.</p>
+      <h2>Add a dataset to continue</h2>
+      <p>Import a CSV or open the sales example.</p>
       <button className="button button-ink" onClick={onLoad}>
         Load the sales sample <ArrowRight size={15} />
       </button>
@@ -366,7 +374,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
         <div className="sidebar-topline">
           <a className="wordmark" href="#" aria-label="DataMind home">
             <span className="wordmark-mark">
-              <img src="/assets/logo.png" alt="Logo" className="wordmark-logo-img" />
+              <BarChart3 size={21} strokeWidth={2} />
             </span>
             <span>DataMind</span>
           </a>
@@ -376,6 +384,14 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
         </div>
 
         <div className="sidebar-scroll">
+          <div className="workspace-label">TOOLS</div>
+          <nav className="side-navigation" aria-label="Analysis views">
+            {TABS.map(({ id, label, icon: Icon }) => (
+              <button key={id} className={activeTab === id ? "is-active" : ""} aria-current={activeTab === id ? "page" : undefined} onClick={() => { setActiveTab(id); setMobileMenuOpen(false); }}>
+                <Icon size={17} /><span>{label}</span>{activeTab === id && <span className="nav-indicator" />}
+              </button>
+            ))}
+          </nav>
           <section className="sidebar-section">
             <div className="eyebrow sidebar-eyebrow">Your data</div>
             {datasetName ? (
@@ -419,7 +435,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
           </section>
 
           <section className="sidebar-section">
-            <div className="eyebrow sidebar-eyebrow">Sample desks</div>
+            <div className="eyebrow sidebar-eyebrow">Example datasets</div>
             <div className="dataset-list">
               {DATASETS.map((dataset) => (
                 <button
@@ -447,9 +463,6 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
           </section>
         </div>
 
-        <div className="sidebar-footer">
-          <span className="sidebar-version">v1.0</span>
-        </div>
       </aside>
 
       <div className="workspace-main">
@@ -459,33 +472,13 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
               <Menu size={19} />
             </button>
             <div>
-              <div className="header-kicker">Workspace / {activeTabMeta.label}</div>
-              <h1>{datasetName ? datasetName.replace(/\.[^/.]+$/, "").replace(/_/g, " ") : "Untitled analysis"}</h1>
+              <div className="header-kicker">Workspace <ChevronRight size={13} /> {activeTabMeta.label}</div>
+              <h1>{datasetName ? datasetName.replace(/\.[^/.]+$/, "").replace(/_/g, " ") : "Workbench"}</h1>
             </div>
           </div>
-          <div className="telemetry-strip">
-            <div><span>Engine</span><strong>{model.includes("120b") ? "120B Deep" : model.includes("20b") ? "20B Fast" : model.includes("70b") ? "70B Deep" : "8B Fast"}</strong></div>
-            <div><span>Latency</span><strong>{telemetry.total_inference_time_ms || "—"}{telemetry.total_inference_time_ms ? " ms" : ""}</strong></div>
-          </div>
+          <button className="button button-outline" onClick={() => fileInputRef.current?.click()}><Upload size={14} /> Import data</button>
         </header>
 
-        <nav className="workspace-tabs" aria-label="Analysis views">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={activeTab === tab.id ? "is-active" : ""}
-                aria-current={activeTab === tab.id ? "page" : undefined}
-              >
-                <Icon size={16} />
-                <span className="tab-long-label">{tab.label}</span>
-                <span className="tab-short-label">{tab.shortLabel}</span>
-              </button>
-            );
-          })}
-        </nav>
 
         <main className={`content-canvas ${activeTab === "copilot" && messages.length === 0 ? "content-canvas-static" : ""}`}>
           {activeTab === "copilot" && (
@@ -493,28 +486,45 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
               {messages.length === 0 ? (
                 <div className="copilot-intro">
                   <div className="intro-copy">
-                    <div className="eyebrow">Conversational analysis</div>
-                    <h2>Ask a sharper question.<br /><em>Get a useful answer.</em></h2>
-                    <p>DataMind reads the structure, runs the analysis, and explains what matters—without making you write the query.</p>
+                    <h2>{datasetName ? "What would you like to find out?" : "Start with a spreadsheet"}</h2>
+                    <p>{datasetName ? "Ask a question, or use one of these as a starting point." : "Upload your data to explore it, ask questions, and check your findings."}</p>
                   </div>
 
                   {datasetName ? (
                     <div className="suggestion-grid">
-                      {suggestions.map((suggestion, index) => (
+                      {suggestions.map((suggestion) => (
                         <button key={suggestion} onClick={() => runChatQuery(suggestion)}>
-                          <span className="suggestion-index">0{index + 1}</span>
                           <span>{suggestion}</span>
                           <ArrowRight size={16} />
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <div className="start-panel">
-                      <div>
-                        <FileSpreadsheet size={20} />
-                        <span><strong>Start with some data</strong><small>Upload a file from the sidebar or open the retail sample.</small></span>
+                    <div className="onboarding">
+                      <button className="import-surface" onClick={() => fileInputRef.current?.click()} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (file) loadLocalFile(file); }}>
+                        <span className="import-icon"><FileSpreadsheet size={24} strokeWidth={1.4} /></span>
+                        <span className="import-copy"><strong>Drop your file here</strong><small>CSV or TSV</small></span>
+                        <span className="import-cta">Browse files</span>
+                      </button>
+                      <div className="examples-layout">
+                      <div className="examples-library">
+                      <div className="sample-heading"><h3>Try an example</h3><span>No file needed</span></div>
+                      <div className="sample-cards">
+                        {DATASETS.map((dataset, index) => (
+                          <button key={dataset.file} onClick={() => parseAndLoadCsv(dataset.load, dataset.file)}>
+                            <FileSpreadsheet className="sample-file-icon" size={18} strokeWidth={1.4} />
+                            <span className="sample-description"><strong>{dataset.name}</strong><span>{["Orders, revenue and margins", "Customer accounts and retention", "Treatments and patient outcomes"][index]}</span></span>
+                            <small>15 rows</small>
+                            <ChevronRight size={14} />
+                          </button>
+                        ))}
                       </div>
-                      <button onClick={loadDefault}>Open retail sample <ArrowRight size={15} /></button>
+                      </div>
+                      <div className="sample-preview">
+                        <div className="preview-heading"><span>From the sales example</span><span>Jan–Feb 2024</span></div>
+                        <div className="preview-content"><div className="preview-summary"><span>Revenue by region</span><strong>${SALES_TOTAL.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong><small>15 orders · Jan–Feb 2024</small><button onClick={() => { loadDefault(); setActiveTab("eda"); }}>Explore this dataset <ArrowRight size={14} /></button></div><div className="preview-bars">{SALES_PREVIEW.map((region) => <div key={region.label}><span>{region.label}</span><div><i style={{ width: `${region.value / SALES_PREVIEW[0].value * 100}%` }} /></div><strong>${Math.round(region.value).toLocaleString()}</strong></div>)}</div></div>
+                      </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -582,7 +592,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
                 </div>
               )}
 
-              <div className="composer-wrap">
+              <div className={`composer-wrap ${!datasetName && messages.length === 0 ? "composer-hidden" : ""}`}>
                 <div className="composer">
                   <textarea
                     aria-label="Ask a question about your data"
@@ -616,8 +626,8 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
                   <div className="section-heading">
                     <div>
                       <span className="eyebrow">Automatic profile</span>
-                      <h2>The shape of your data</h2>
-                      <p>A quick structural read before you ask deeper questions.</p>
+                      <h2>Dataset overview</h2>
+                      <p>Record counts, missing values, and field types.</p>
                     </div>
                     <div className="quality-badge"><span>{edaMetrics.completeness.toFixed(1)}%</span>data complete</div>
                   </div>
@@ -672,7 +682,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
               {!records.length ? <DataEmpty onLoad={loadDefault} /> : (
                 <>
                   <div className="section-heading section-heading-compact">
-                    <div><span className="eyebrow">Raw records</span><h2>Look closely</h2></div>
+                    <div><h2>Records</h2></div>
                     <button className="button button-outline" onClick={downloadCsv}><Download size={15} /> Export CSV</button>
                   </div>
                   <div className="table-toolbar">
@@ -712,7 +722,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
               {!edaMetrics ? <DataEmpty onLoad={loadDefault} /> : (
                 <>
                   <div className="section-heading">
-                    <div><span className="eyebrow">Prepare the dataset</span><h2>Clean, with intent</h2><p>Small, transparent transformations. Your source file stays untouched.</p></div>
+                    <div><h2>Prepare your data</h2><p>Changes apply to your working copy. You can undo the last five changes.</p></div>
                     {recordHistory.length > 0 && (
                       <button className="button button-outline" onClick={undoLastClean}>
                         <RefreshCw size={14} /> Undo last change
@@ -757,7 +767,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
                     </article>
                     <article className="recipe-card recipe-card-export">
                       <div className="recipe-number">03</div><div className="recipe-icon blue"><Download size={20} /></div>
-                      <h3>Take it with you</h3><p>Download the current working copy as a clean, portable CSV.</p>
+                      <h3>Export your data</h3><p>Download the current working copy as a CSV.</p>
                       <div className="recipe-stat"><strong>{records.length}</strong><span>rows ready to export</span></div>
                       <button className="button button-lime" onClick={downloadCsv}>Download prepared CSV <Download size={15} /></button>
                     </article>
@@ -772,7 +782,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
               {!records.length ? <DataEmpty onLoad={loadDefault} /> : (
                 <>
                   <div className="section-heading section-heading-compact">
-                    <div><span className="eyebrow">Decision-ready output</span><h2>The brief</h2><p>Turn the current dataset into an executive readout.</p></div>
+                    <div><h2>Analysis brief</h2><p>A written summary of the current dataset.</p></div>
                     <button className="button button-lime" onClick={generateReport} disabled={isGeneratingReport}>
                       {isGeneratingReport ? <><RefreshCw size={15} className="spin" /> Drafting</> : <><FileText size={15} /> Generate brief</>}
                     </button>
@@ -798,8 +808,8 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
                   ) : (
                     <div className="report-placeholder">
                       <div className="report-placeholder-art"><span /><span /><span /><span /></div>
-                      <h3>A one-page readout, written for decisions.</h3>
-                      <p>Generate a concise brief covering data health, key signals, and the next questions worth asking.</p>
+                      <h3>Summarize this dataset</h3>
+                      <p>Create a brief with data quality checks, findings, and questions to investigate.</p>
                       <button className="button button-ink" onClick={generateReport} disabled={isGeneratingReport}>Generate your first brief <ArrowRight size={15} /></button>
                     </div>
                   )}

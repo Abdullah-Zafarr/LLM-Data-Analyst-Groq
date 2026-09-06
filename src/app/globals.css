@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --ink: #151b2b;
+  --ink: #283329;
   --ink-soft: #232b40;
   --navy: #111728;
   --navy-raised: #192136;
-  --paper: #f3efe5;
+  --paper: #fafbf9;
   --paper-deep: #eae4d7;
-  --white: #fffdf8;
-  --line: #d8d1c3;
+  --white: #ffffff;
+  --line: #e0e6dc;
   --muted: #716f6a;
-  --lime: #c9f04f;
-  --coral: #ff6b4a;
+  --lime: #e2ecdc;
+  --coral: #426a39;
   --blue: #90b7ff;
   --green: #33c58a;
   --sidebar-width: 292px;

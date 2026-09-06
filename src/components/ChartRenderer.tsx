@@ -11,7 +11,7 @@ interface ChartProps {
   color?: string;
 }
 
-const PALETTE = ["#151b2b", "#ff6b4a", "#90b7ff", "#c9f04f", "#8f6fe8", "#44b790", "#f2b84b", "#a8a29a"];
+const PALETTE = ["#506f48", "#8fa982", "#718c9a", "#b6c4a4", "#9b8c77", "#699188", "#b5a777", "#a8afa1"];
 
 function polarPoint(cx: number, cy: number, radius: number, angle: number) {
   const radians = ((angle - 90) * Math.PI) / 180;
@@ -39,7 +39,7 @@ export default function ChartRenderer({
   data,
   xKey,
   yKey,
-  color = "#151b2b",
+  color = "#506f48",
 }: ChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
