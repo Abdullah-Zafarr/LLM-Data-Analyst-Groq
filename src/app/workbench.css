@@ -580,6 +580,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   font-family:Arial,sans-serif;
   font-size:13px;
 }
+.composer textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.composer:focus-within {
+  border-color: #718767;
+  box-shadow: 0 0 0 2px #71876720;
+}
 .composer-footer button {
   background:#345f42;
   border-radius:5px;
