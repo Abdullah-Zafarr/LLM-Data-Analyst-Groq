@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       messages = [],
       dataset_records = [],
       dataset_name = "dataset.csv",
-      model = "llama-3.3-70b-versatile",
+      model = "openai/gpt-oss-120b",
       api_key,
     } = body;
 

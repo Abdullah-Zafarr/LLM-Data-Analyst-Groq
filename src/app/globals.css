@@ -1661,6 +1661,73 @@ textarea:focus-visible {
   to { transform: rotate(360deg); }
 }
 
+@media (min-width: 1024px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .workspace-shell,
+  .workspace-main {
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .workspace-main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .workspace-header,
+  .workspace-tabs {
+    position: relative;
+    top: auto;
+    flex: 0 0 auto;
+  }
+
+  .content-canvas {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .content-canvas-static {
+    overflow: hidden;
+    padding-top: clamp(18px, 4.3vh, 42px);
+    padding-bottom: clamp(12px, 3vh, 28px);
+  }
+
+  .content-canvas-static .copilot-view {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .content-canvas-static .copilot-intro {
+    min-height: 0;
+    padding-top: 0;
+    padding-bottom: clamp(14px, 3.5vh, 34px);
+  }
+
+  .content-canvas-static .intro-copy h2 {
+    font-size: clamp(42px, min(5.2vw, 7vh), 68px);
+  }
+
+  .content-canvas-static .intro-copy > p {
+    margin-top: clamp(12px, 2.2vh, 22px);
+  }
+
+  .content-canvas-static .start-panel {
+    margin-top: clamp(18px, 4vh, 40px);
+  }
+
+  .content-canvas-static .composer-wrap {
+    flex: 0 0 auto;
+    margin-top: clamp(12px, 2.5vh, 24px);
+  }
+}
+
 @media (max-width: 1023px) {
   :root { --sidebar-width: 286px; }
 

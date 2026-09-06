@@ -122,7 +122,7 @@ export default function DataMindWorkspace() {
   const [activeTab, setActiveTab] = useState<TabId>("copilot");
   const [records, setRecords] = useState<Record<string, any>[]>([]);
   const [datasetName, setDatasetName] = useState<string | null>(null);
-  const [model, setModel] = useState("llama-3.3-70b-versatile");
+  const [model, setModel] = useState("openai/gpt-oss-120b");
   const [apiKey, setApiKey] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputQuery, setInputQuery] = useState("");
@@ -439,8 +439,10 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
             <div className="eyebrow sidebar-eyebrow"><span>Connection</span><Settings2 size={13} /></div>
             <label className="field-label" htmlFor="model-select">Model</label>
             <select id="model-select" value={model} onChange={(event) => setModel(event.target.value)} className="sidebar-select">
-              <option value="llama-3.3-70b-versatile">Llama 3.3 70B · deep</option>
-              <option value="llama-3.1-8b-instant">Llama 3.1 8B · fast</option>
+              <option value="openai/gpt-oss-120b">GPT OSS 120B · deep</option>
+              <option value="openai/gpt-oss-20b">GPT OSS 20B · fast</option>
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B · deep (legacy)</option>
+              <option value="llama-3.1-8b-instant">Llama 3.1 8B · fast (legacy)</option>
             </select>
           </section>
         </div>
@@ -462,7 +464,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
             </div>
           </div>
           <div className="telemetry-strip">
-            <div><span>Engine</span><strong>{model.includes("70b") ? "70B Deep" : "8B Fast"}</strong></div>
+            <div><span>Engine</span><strong>{model.includes("120b") ? "120B Deep" : model.includes("20b") ? "20B Fast" : model.includes("70b") ? "70B Deep" : "8B Fast"}</strong></div>
             <div><span>Latency</span><strong>{telemetry.total_inference_time_ms || "—"}{telemetry.total_inference_time_ms ? " ms" : ""}</strong></div>
           </div>
         </header>
@@ -485,7 +487,7 @@ The dataset parsed successfully and is ready for focused analysis. Use Ask DataM
           })}
         </nav>
 
-        <main className="content-canvas">
+        <main className={`content-canvas ${activeTab === "copilot" && messages.length === 0 ? "content-canvas-static" : ""}`}>
           {activeTab === "copilot" && (
             <section className="copilot-view view-enter">
               {messages.length === 0 ? (
